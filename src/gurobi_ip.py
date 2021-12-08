@@ -10,7 +10,7 @@ def solve_by_gurobi(config, inp):
     if config.solver.time_limit > 0:
         model.setParam("TimeLimit", config.solver.time_limit)
     model.setParam("IntegralityFocus", 1)
-    if config.solver.worker > 0:
+    if config.solver.num_worker > 0:
         model.setParam("Threads", config.solver.worker)
 
     try:
@@ -30,8 +30,8 @@ def solve_by_gurobi(config, inp):
     L_w = config.params["L_w"]
     L_d = config.params["L_d"]
 
-    t = inp["t"]
-    t_a = inp["t_a"]
+    t = inp["tau"]
+    t_a = inp["tau_a"]
     num_cus = inp["num_cus"]
 
     C = [i for i in range(1, num_cus + 1)]
@@ -82,8 +82,9 @@ def solve_by_gurobi(config, inp):
 
     # Obj
     tmp_obj = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name=f"tmp_obj")
-    model.addGenConstrMax(tmp_obj, [A[k] for k in range(num_staff)].extend([B[d] for d in range(num_drone)]), 0.0,
-                          "max_time")
+    var_lst = [A[k] for k in range(num_staff)]
+    var_lst.extend([B[d] for d in range(num_drone)])
+    model.addGenConstrMax(tmp_obj, var_lst, 0.0, "max_time")
     model.setObjective(tmp_obj, GRB.MINIMIZE)
 
     # constraint

@@ -4,9 +4,9 @@ params:
     staff_velocity: 0.58
     drone_velocity: 0.83
     num_staff: 2
-    num_drone: -1
+    num_drone: 2
 
-data_path: data/
+data_path: data/data.csv
 
 result_folder: result
 
