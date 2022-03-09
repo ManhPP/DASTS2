@@ -40,4 +40,4 @@ def gen(num_staff, num_cus, max_wait_time, velocity):
 
 
 if __name__ == '__main__':
-    gen(2, 6, 2, 40)
+    gen(2, 10, 2, 40)

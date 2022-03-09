@@ -9,9 +9,10 @@ def solve_by_gurobi(config, inp):
 
     if config.solver.time_limit > 0:
         model.setParam("TimeLimit", config.solver.time_limit)
-    model.setParam("IntegralityFocus", 1)
     if config.solver.num_worker > 0:
         model.setParam("Threads", config.solver.worker)
+    model.setParam("IntegralityFocus", 1)
+    model.setParam("IntFeasTol", 1e-9)
 
     try:
         special_params = config.solver.model_params.gurobi
@@ -56,6 +57,8 @@ def solve_by_gurobi(config, inp):
     A = {}
     B = {}
     T = {}
+    l_t = {}
+    l_d = {}
 
     for k in range(num_staff):
         for i in C01:
@@ -80,6 +83,19 @@ def solve_by_gurobi(config, inp):
         for r in range(num_drone_trip):
             T[d, r] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name=f"T[{d},{r}]")
 
+    for k in range(num_staff):
+        l_t[0, k] = model.addVar(vtype=GRB.INTEGER, lb=0, name=f"l[0,{k}]")
+        l_t[num_cus + 1, k] = model.addVar(vtype=GRB.INTEGER, lb=0, name=f"l[{num_cus + 1},{k}]")
+        for i in C:
+            l_t[i, k] = model.addVar(vtype=GRB.INTEGER, lb=0, name=f"l_t[{i},{k}]")
+
+    for d in range(num_drone):
+        for r in range(num_drone_trip):
+            l_d[0, d, r] = model.addVar(vtype=GRB.INTEGER, lb=0, name=f"l_d[{0},{d},{r}]")
+            l_d[num_cus + 1, d, r] = model.addVar(vtype=GRB.INTEGER, lb=0, name=f"l_d[{num_cus + 1},{d},{r}]")
+
+            for i in C2:
+                l_d[i, d, r] = model.addVar(vtype=GRB.INTEGER, lb=0, name=f"l_d[{i},{d},{r}]")
     # Obj
     tmp_obj = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name=f"tmp_obj")
     var_lst = [A[k] for k in range(num_staff)]
@@ -89,19 +105,59 @@ def solve_by_gurobi(config, inp):
 
     # constraint
 
-    # 7
     for k in range(num_staff):
-        model.addConstr(gp.quicksum(x[0, j, k] for j in C02) == gp.quicksum(x[i, num_cus + 1, k] for i in C01),
+        model.addConstr(l_t[0, k] == 0)
+        for i in C01:
+            for j in C02:
+                if i != j:
+                    model.addConstr((x[i, j, k] == 1) >> (l_t[j, k] == l_t[i, k] + 1))
+
+    for d in range(num_drone):
+        for r in range(num_drone_trip):
+            model.addConstr(l_d[0, d, r] == 0)
+            for i in C21:
+                for j in C22:
+                    if i != j:
+                        model.addConstr((y[i, j, d, r] == 1) >> (l_d[j, d, r] == l_d[i, d, r] + 1))
+    # 7
+    tmp7 = {}
+
+    for k in range(num_staff):
+        tmp7[k] = model.addVar(vtype=GRB.BINARY, name=f"tmp7[{k}]")
+        model.addConstr(tmp7[k] == gp.quicksum(x[0, j, k] for j in C02 if j != num_cus + 1), name=f"c_tmp7[{k}]")
+        model.addConstr(tmp7[k] == gp.quicksum(x[i, num_cus + 1, k] for i in C01 if i != 0),
                         name=f"inOutTech_tech[{k}]")
+
+        model.addConstr((tmp7[k] == 0)
+                        >> (gp.quicksum(x[i, j, k] for i in C01 for j in C02 if i != j) == 0),
+                        name=f"inOutTech2_tech[{k}]")
+
+        for i in C:
+            for j in C:
+                if i != j:
+                    model.addConstr(x[i, j, k] + x[j, i, k] <= 1)
+
     # 8
     for k in range(num_staff):
         model.addConstr(gp.quicksum(x[0, j, k] for j in C02) <= 1, name=f"outTech_tech[{k}]")
     # 9
+    tmp9 = {}
     for d in range(num_drone):
         for r in range(num_drone_trip):
-            model.addConstr(
-                gp.quicksum(y[0, j, d, r] for j in C22) == gp.quicksum(y[i, num_cus + 1, d, r] for i in C21),
-                name=f"inOutDrone_trip[{r}]_drone[{d}]")
+            tmp9[d, r] = model.addVar(vtype=GRB.BINARY, name=f"tmp9[{d, r}]")
+            model.addConstr(tmp9[d, r] == gp.quicksum(y[0, j, d, r] for j in C22 if j != num_cus + 1),
+                            name=f"c_tmp9[{d, r}]")
+            model.addConstr(tmp9[d, r] == gp.quicksum(y[i, num_cus + 1, d, r] for i in C21 if i != 0),
+                            name=f"inOutDrone_trip[{r}]_drone[{d}]")
+
+            model.addConstr((tmp9[d, r] == 0)
+                            >> (gp.quicksum(y[i, j, d, r] for i in C21 for j in C22 if i != j) == 0),
+                            name=f"inOutDrone2_trip[{r}]_drone[{d}]")
+
+            for i in C2:
+                for j in C2:
+                    if i != j:
+                        model.addConstr(y[i, j, d, r] + y[j, i, d, r] <= 1)
     # 10
     for d in range(num_drone):
         for r in range(num_drone_trip):

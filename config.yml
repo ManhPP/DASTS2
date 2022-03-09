@@ -6,7 +6,7 @@ params:
     num_staff: 2
     num_drone: 2
 
-data_path: data/data.csv
+data_path: data/old/10.10.1.txt
 
 result_folder: result
 

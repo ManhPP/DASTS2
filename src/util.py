@@ -1,16 +1,19 @@
 import json
 import os
-import pandas as pd
-from scipy.spatial.distance import cdist
-import numpy as np
 
+import numpy as np
+import pandas as pd
 from gurobipy import GRB
+from scipy.spatial.distance import cdist
 
 
 def load_input(config, data_set):
     result = {}
 
-    coordinates_matrix = pd.read_csv(data_set).to_numpy()[:, 1:]
+    if "old" in data_set:
+        coordinates_matrix = np.loadtxt(data_set, skiprows=2)[:, :2]
+    else:
+        coordinates_matrix = pd.read_csv(data_set).to_numpy()[:, 1:]
     result["num_cus"] = len(coordinates_matrix)
     coordinates_matrix = np.insert(coordinates_matrix, 0, np.zeros(2), 0)
     dis_matrix = cdist(coordinates_matrix, coordinates_matrix)
@@ -38,6 +41,10 @@ def load_input(config, data_set):
     result["tau_a"][result["num_cus"] + 1, result["num_cus"] + 1] = 0.0
 
     result["C1"] = []
+    for i in result["C"]:
+        if result["tau_a"][0, i] > config.params["L_d"]:
+            result["C1"].append(i)
+    result['data_set'] = os.path.splitext(os.path.basename(data_set))[0]
     return result
 
 
