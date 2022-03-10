@@ -5,6 +5,7 @@ from datetime import datetime
 
 from omegaconf import OmegaConf
 
+from src.cplex_ip import solve_by_cplex
 from src.gurobi_ip import solve_by_gurobi
 from src.util import load_input
 
@@ -23,8 +24,11 @@ if __name__ == '__main__':
             print(data_set)
             try:
                 inp = load_input(config, data_set)
-
-                solve_by_gurobi(config, inp)
-
+                if config.solver.solver == "GUROBI":
+                    solve_by_gurobi(config, inp)
+                elif config.solver.solver == "CPLEX":
+                    solve_by_cplex(config, inp)
+                else:
+                    raise "Unknown solver!"
             except Exception as e:
                 print("Error: ", e)

@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from gurobipy import GRB
 from scipy.spatial.distance import cdist
+from docplex.util.status import JobSolveStatus as cp_status
 
 
 def load_input(config, data_set):
@@ -109,7 +110,8 @@ def get_num_var(model, solver):
 def get_status(status, solver):
     if solver == "GUROBI":
         return "OPTIMAL" if status == GRB.OPTIMAL else "FEASIBLE"
-
+    elif solver == "CPLEX":
+        return "OPTIMAL" if status == cp_status.OPTIMAL_SOLUTION else "FEASIBLE"
 
 def post_process(model, status, inp, config, x, y, A, B, T):
     num_staff = config.params["num_staff"]
@@ -140,11 +142,17 @@ def post_process(model, status, inp, config, x, y, A, B, T):
 
     if config.solver.solver == "GUROBI":
         result["model_params"] = dict(config.solver.model_params.gurobi)
+    elif config.solver.solver == "CPLEX":
+        result["model_params"] = dict(config.solver.model_params.cplex)
 
     make_dirs_if_not_present(config.result_folder)
 
     if config.solver.solver == "GUROBI" and not (status == GRB.OPTIMAL or status == GRB.TIME_LIMIT):
         result = {"status": "INFEASIBLE" if status == GRB.INFEASIBLE else status}
+    if config.solver.solver == "CPLEX" and not (
+            status == cp_status.OPTIMAL_SOLUTION or status == cp_status.FEASIBLE_SOLUTION):
+        result = {"status": "INFEASIBLE" if status == cp_status.INFEASIBLE_SOLUTION
+                                            or cp_status.INFEASIBLE_OR_UNBOUNDED_SOLUTION else status}
     else:
         for k in range(num_staff):
             for i in C01:
