@@ -110,11 +110,6 @@ def solve_by_cplex(config, inp):
         model.add_constraint((tmp7[k] == 0)
                              >> (model.sum(x[i, j, k] for i in C01 for j in C02 if i != j) == 0))
 
-        for i in C:
-            for j in C:
-                if i != j:
-                    model.add_constraint(x[i, j, k] + x[j, i, k] <= 1)
-
     # 8
     for k in range(num_staff):
         model.add_constraint(model.sum(x[0, j, k] for j in C02) <= 1)
@@ -129,10 +124,6 @@ def solve_by_cplex(config, inp):
             model.add_constraint((tmp9[d, r] == 0)
                                  >> (model.sum(y[i, j, d, r] for i in C21 for j in C22 if i != j) == 0))
 
-            for i in C2:
-                for j in C2:
-                    if i != j:
-                        model.add_constraint(y[i, j, d, r] + y[j, i, d, r] <= 1)
     # 10
     for d in range(num_drone):
         for r in range(num_drone_trip):

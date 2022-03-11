@@ -3,15 +3,15 @@ params:
     L_d: 60
     staff_velocity: 0.58
     drone_velocity: 0.83
-    num_staff: 3
+    num_staff: 2
     num_drone: 2
 
-data_path: data/old/10.10.1.txt
+data_path: data/old/10.20.4.txt
 
 result_folder: result
 
 solver:
-    solver: CPLEX #GUROBI
+    solver: GUROBI
     solver_log: false
     num_worker: -1
     time_limit: 180

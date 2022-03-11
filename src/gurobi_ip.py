@@ -132,11 +132,6 @@ def solve_by_gurobi(config, inp):
                         >> (gp.quicksum(x[i, j, k] for i in C01 for j in C02 if i != j) == 0),
                         name=f"inOutTech2_tech[{k}]")
 
-        for i in C:
-            for j in C:
-                if i != j:
-                    model.addConstr(x[i, j, k] + x[j, i, k] <= 1)
-
     # 8
     for k in range(num_staff):
         model.addConstr(gp.quicksum(x[0, j, k] for j in C02) <= 1, name=f"outTech_tech[{k}]")
@@ -154,10 +149,6 @@ def solve_by_gurobi(config, inp):
                             >> (gp.quicksum(y[i, j, d, r] for i in C21 for j in C22 if i != j) == 0),
                             name=f"inOutDrone2_trip[{r}]_drone[{d}]")
 
-            for i in C2:
-                for j in C2:
-                    if i != j:
-                        model.addConstr(y[i, j, d, r] + y[j, i, d, r] <= 1)
     # 10
     for d in range(num_drone):
         for r in range(num_drone_trip):
