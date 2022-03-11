@@ -38,8 +38,7 @@ def solve_by_cplex(config, inp):
     A = {}
     B = {}
     T = {}
-    l_t = {}
-    l_d = {}
+    l = {}
 
     for k in range(num_staff):
         for i in C01:
@@ -65,18 +64,18 @@ def solve_by_cplex(config, inp):
             T[d, r] = model.continuous_var(lb=0, name=f"T[{d},{r}]")
 
     for k in range(num_staff):
-        l_t[0, k] = model.integer_var(lb=0, name=f"l[0,{k}]")
-        l_t[num_cus + 1, k] = model.integer_var(lb=0, name=f"l[{num_cus + 1},{k}]")
+        l[0, k] = model.integer_var(lb=0, name=f"l[0,{k}]")
+        l[num_cus + 1, k] = model.integer_var(lb=0, name=f"l[{num_cus + 1},{k}]")
         for i in C:
-            l_t[i, k] = model.integer_var(lb=0, name=f"l_t[{i},{k}]")
+            l[i, k] = model.integer_var(lb=0, name=f"l[{i},{k}]")
 
     for d in range(num_drone):
         for r in range(num_drone_trip):
-            l_d[0, d, r] = model.integer_var(lb=0, name=f"l_d[{0},{d},{r}]")
-            l_d[num_cus + 1, d, r] = model.integer_var(lb=0, name=f"l_d[{num_cus + 1},{d},{r}]")
+            l[0, d, r] = model.integer_var(lb=0, name=f"l[{0},{d},{r}]")
+            l[num_cus + 1, d, r] = model.integer_var(lb=0, name=f"l[{num_cus + 1},{d},{r}]")
 
             for i in C2:
-                l_d[i, d, r] = model.integer_var(lb=0, name=f"l_d[{i},{d},{r}]")
+                l[i, d, r] = model.integer_var(lb=0, name=f"l[{i},{d},{r}]")
     # Obj
     var_lst = [A[k] for k in range(num_staff)]
     var_lst.extend([B[d] for d in range(num_drone)])
@@ -86,19 +85,19 @@ def solve_by_cplex(config, inp):
     # constraint
 
     for k in range(num_staff):
-        model.add_constraint(l_t[0, k] == 0)
+        model.add_constraint(l[0, k] == 0)
         for i in C01:
             for j in C02:
                 if i != j:
-                    model.add_constraint((x[i, j, k] == 1) >> (l_t[j, k] == l_t[i, k] + 1))
+                    model.add_constraint((x[i, j, k] == 1) >> (l[j, k] == l[i, k] + 1))
 
     for d in range(num_drone):
         for r in range(num_drone_trip):
-            model.add_constraint(l_d[0, d, r] == 0)
+            model.add_constraint(l[0, d, r] == 0)
             for i in C21:
                 for j in C22:
                     if i != j:
-                        model.add_constraint((y[i, j, d, r] == 1) >> (l_d[j, d, r] == l_d[i, d, r] + 1))
+                        model.add_constraint((y[i, j, d, r] == 1) >> (l[j, d, r] == l[i, d, r] + 1))
     # 7
     tmp7 = {}
 
