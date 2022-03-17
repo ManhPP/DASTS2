@@ -1,21 +1,27 @@
-params:
-    L_w: 30
-    L_d: 60
-    staff_velocity: 0.58
-    drone_velocity: 0.83
-    num_staff: 2
-    num_drone: 2
+run_type: test
 
-data_path: data/old/10.20.4.txt
+params:
+  L_w: 60
+  L_d: 120
+  staff_velocity: 0.58
+  drone_velocity: 0.83
+  num_staff: 3
+  num_drone: 3
+
+data_path: data/old/12.20.4.txt
 
 result_folder: result
 
 solver:
-    solver: GUROBI
-    solver_log: false
-    num_worker: -1
-    time_limit: 180
-    model_params:
-        gurobi: {}
-        cplex: {}
+  solver: GUROBI
+  solver_log: false
+  num_worker: -1
+  time_limit: 1800
+  model_params:
+    gurobi: { }
+    cplex: { }
 
+test:
+  data_path: data/old/12.20.4.txt
+  staff: [ [ 0,5,13 ],[ 0,2,13 ],[ 0,10,13 ] ]
+  drone: [ [ [ 0,11,7,13 ] ],[ [ 0,8,6,12,3,13 ] ],[ [ 0,9,1,4,13 ] ] ]

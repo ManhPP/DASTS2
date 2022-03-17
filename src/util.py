@@ -3,9 +3,9 @@ import os
 
 import numpy as np
 import pandas as pd
+from docplex.util.status import JobSolveStatus as cp_status
 from gurobipy import GRB
 from scipy.spatial.distance import cdist
-from docplex.util.status import JobSolveStatus as cp_status
 
 
 def load_input(config, data_set):
@@ -112,6 +112,7 @@ def get_status(status, solver):
         return "OPTIMAL" if status == GRB.OPTIMAL else "FEASIBLE"
     elif solver == "CPLEX":
         return "OPTIMAL" if status == cp_status.OPTIMAL_SOLUTION else "FEASIBLE"
+
 
 def post_process(model, status, inp, config, x, y, A, B, T):
     num_staff = config.params["num_staff"]

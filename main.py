@@ -5,6 +5,7 @@ from datetime import datetime
 
 from omegaconf import OmegaConf
 
+from cal_result import cal
 from src.cplex_ip import solve_by_cplex
 from src.gurobi_ip import solve_by_gurobi
 from src.util import load_input
@@ -17,18 +18,23 @@ if __name__ == '__main__':
     args = parser.parse_args()
     config = OmegaConf.load(args.config)
     config.result_folder = os.path.join(config.result_folder, datetime.now().strftime("%m%d%Y%H%M%S"))
-    for data_path in config.data_path.split(","):
-        paths = glob.glob(data_path)
-        print(paths)
-        for data_set in paths:
-            print(data_set)
-            try:
-                inp = load_input(config, data_set)
-                if config.solver.solver == "GUROBI":
-                    solve_by_gurobi(config, inp)
-                elif config.solver.solver == "CPLEX":
-                    solve_by_cplex(config, inp)
-                else:
-                    raise "Unknown solver!"
-            except Exception as e:
-                print("Error: ", e)
+    if config.run_type == "test":
+        inp = load_input(config, config.test.data_path)
+        print(f"Final result: {cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'])}")
+
+    else:
+        for data_path in config.data_path.split(","):
+            paths = glob.glob(data_path)
+            print(paths)
+            for data_set in paths:
+                print(data_set)
+                try:
+                    inp = load_input(config, data_set)
+                    if config.solver.solver == "GUROBI":
+                        solve_by_gurobi(config, inp)
+                    elif config.solver.solver == "CPLEX":
+                        solve_by_cplex(config, inp)
+                    else:
+                        raise "Unknown solver!"
+                except Exception as e:
+                    print("Error: ", e)
