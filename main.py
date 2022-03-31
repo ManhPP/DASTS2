@@ -6,9 +6,10 @@ from datetime import datetime
 from omegaconf import OmegaConf
 
 from cal_result import cal
-from src.cplex_ip import solve_by_cplex
-from src.gurobi_ip import solve_by_gurobi
-from src.util import load_input
+from src.ip.cplex_ip import solve_by_cplex
+from src.ip.gurobi_ip import solve_by_gurobi
+from src.load_input import load_input
+from src.ts.Solution import Solution
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS2')
@@ -18,7 +19,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
     config = OmegaConf.load(args.config)
     config.result_folder = os.path.join(config.result_folder, datetime.now().strftime("%m%d%Y%H%M%S"))
-    if config.run_type == "test":
+    if config.run_type == "ts":
+        inp = load_input(config, config.data_path)
+        sol = Solution(config, inp)
+        print(sol)
+
+    elif config.run_type == "test":
         inp = load_input(config, config.test.data_path)
         print(f"Final result: {cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'])}")
 

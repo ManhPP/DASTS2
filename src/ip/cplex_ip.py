@@ -1,6 +1,6 @@
 from docplex.mp.model import Model
 
-from src.util import post_process
+from src.ip.util import post_process
 
 
 def solve_by_cplex(config, inp):
