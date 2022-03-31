@@ -22,7 +22,8 @@ if __name__ == '__main__':
     if config.run_type == "ts":
         inp = load_input(config, config.data_path)
         sol = Solution(config, inp)
-        print(sol)
+        print(sol.solution)
+        print(sol.find_index(5))
 
     elif config.run_type == "test":
         inp = load_input(config, config.test.data_path)

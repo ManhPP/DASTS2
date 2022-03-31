@@ -129,7 +129,20 @@ class Solution:
         pass
 
     def find_index(self, val):
-        pass
+        num_staff = self.config.params["num_staff"]
+        num_drone = self.config.params["num_drone"]
+        for i in range(num_drone):
+            drone_trip = self.solution[i]
+            for j, trip in enumerate(drone_trip):
+                for k, node in enumerate(trip):
+                    if node == val:
+                        return i, j, k
+
+        for i in range(num_drone, num_drone + num_staff):
+            staff_trip = self.solution[i]
+            for j, node in enumerate(staff_trip):
+                if node == val:
+                    return i, j
 
 
 if __name__ == '__main__':
