@@ -1,5 +1,7 @@
 import random
 
+from src.utils import cal
+
 
 class Solution:
     def __init__(self, config, inp):
@@ -123,10 +125,19 @@ class Solution:
         self.solution[x_ind + 1], self.solution[y_ind + 1] = self.solution[y_ind + 1], self.solution[x_ind + 1]
 
     def get_score(self):
-        pass
+        return cal(self.solution[self.config.params["num_drone"]:],
+                   self.solution[:self.config.params["num_drone"]], self.inp['tau'],
+                   self.inp['tau_a'],
+                   self.inp['num_cus'])
 
     def get_all_neighbor(self):
-        pass
+        result = []
+
+        num_cus = self.inp["num_cus"]
+
+        # TODO: get all neighbor
+
+        return result
 
     def find_index(self, val):
         num_staff = self.config.params["num_staff"]

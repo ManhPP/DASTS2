@@ -1,4 +1,4 @@
-from src.ts.Solution import Solution
+from src.ts.solution import Solution
 from src.ts.tabu import TabuSearch
 
 

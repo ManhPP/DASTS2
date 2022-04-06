@@ -5,11 +5,11 @@ from datetime import datetime
 
 from omegaconf import OmegaConf
 
-from cal_result import cal
+from src.utils import cal
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
-from src.ts.Solution import Solution
+from src.ts.solution import Solution
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS2')
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     elif config.run_type == "test":
         inp = load_input(config, config.test.data_path)
-        print(f"Final result: {cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'])}")
+        print(f"Final result: {cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'])}")
 
     else:
         for data_path in config.data_path.split(","):
