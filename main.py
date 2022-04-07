@@ -23,7 +23,7 @@ if __name__ == '__main__':
         inp = load_input(config, config.data_path)
         sol = Solution(config, inp)
         print(sol.solution)
-        print(sol.find_index(5))
+        print(sol.get_score())
 
     elif config.run_type == "test":
         inp = load_input(config, config.test.data_path)

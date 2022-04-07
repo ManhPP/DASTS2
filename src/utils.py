@@ -3,22 +3,27 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, print_log=False):
     A = {}
     B = {}
 
-    for staff in staff_path_list:
+    for i, staff in enumerate(staff_path_list):
+        if len(staff) == 0:
+            continue
         tmp = tau[0, staff[0]]
         for i in range(len(staff) - 1):
             tmp += tau[staff[i], staff[i + 1]]
-        A[staff] = tmp + tau[staff[-1], num_cus + 1]
+        A[i] = tmp + tau[staff[-1], num_cus + 1]
 
-    for drone in drone_path_list:
+    for i, drone in enumerate(drone_path_list):
         tmp = 0
-        for trip in drone:
+        for j, trip in enumerate(drone):
+            if len(trip) == 0:
+                continue
             tmp1 = tau_a[0, trip[0]]
             for i in range(len(trip) - 1):
                 tmp1 += tau_a[trip[i], trip[i + 1]]
-            T[drone, trip] = tmp1 + tau_a[trip[-1], num_cus + 1]
+            T[i, j] = tmp1 + tau_a[trip[-1], num_cus + 1]
             tmp += tmp1
 
-        B[drone] = tmp
+        if tmp > 0:
+            B[i] = tmp
     if print_log:
         print(f"A: {A}")
         print(f"B: {B}")
