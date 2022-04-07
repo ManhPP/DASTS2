@@ -4,18 +4,7 @@ import os
 from docplex.util.status import JobSolveStatus as cp_status
 from gurobipy import GRB
 
-
-def make_dirs(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-
-def make_dirs_if_not_present(path):
-    """
-    creates new directory if not present
-    """
-    if not os.path.exists(path):
-        os.makedirs(path)
+from src.utils import make_dirs_if_not_present
 
 
 def get_variable_value(var, solver):

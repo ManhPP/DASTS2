@@ -1,7 +1,7 @@
 import gurobipy as gp
 from gurobipy import GRB
 
-from src.ip.util import make_dirs_if_not_present, post_process
+from src.ip.ip_utils import make_dirs_if_not_present, post_process
 
 
 def solve_by_gurobi(config, inp):

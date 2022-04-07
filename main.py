@@ -9,7 +9,7 @@ from src.utils import cal
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
-from src.ts.solution import Solution
+from src.ts.ts_utils import TSUtils
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS2')
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     config.result_folder = os.path.join(config.result_folder, datetime.now().strftime("%m%d%Y%H%M%S"))
     if config.run_type == "ts":
         inp = load_input(config, config.data_path)
-        sol = Solution(config, inp)
+        sol = TSUtils(config, inp)
         print(sol.solution)
         print(sol.get_score())
 

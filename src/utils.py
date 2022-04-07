@@ -1,3 +1,6 @@
+import os
+
+
 def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, print_log=False):
     T = {}
     A = {}
@@ -29,6 +32,19 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, print_log=False):
         print(f"B: {B}")
         print(f"T: {T}")
     return max(max(A.values()), max(B.values()))
+
+
+def make_dirs(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
+def make_dirs_if_not_present(path):
+    """
+    creates new directory if not present
+    """
+    if not os.path.exists(path):
+        os.makedirs(path)
 
 
 if __name__ == '__main__':
