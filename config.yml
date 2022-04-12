@@ -12,6 +12,11 @@ data_path: data/old/12.20.4.txt
 
 result_folder: result
 
+tabu_params:
+  alpha1: 1
+  alpha2: 1
+  beta: 0.5
+
 solver:
   solver: GUROBI
   solver_log: false

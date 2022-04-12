@@ -14,8 +14,7 @@ class TSUtils:
     def get_score(self, solution):
         return cal(solution[self.config.params["num_drone"]:],
                    solution[:self.config.params["num_drone"]], self.inp['tau'],
-                   self.inp['tau_a'],
-                   self.inp['num_cus'])
+                   self.inp['tau_a'], self.inp['num_cus'], self.config)
 
     def get_all_neighbor(self):
         result = []
@@ -96,6 +95,17 @@ class TSUtils:
             solution[y_ind[0]][y_ind[1]] = x
         else:
             solution[y_ind[0]][y_ind[1]][y_ind[2]] = x
+
+    def is_in_same_trip(self, solution, x, y):
+        x_ind = self.find_index(solution, x)
+        y_ind = self.find_index(solution, y)
+
+        if len(x_ind) != len(y_ind):
+            return False
+        if len(x_ind) == 2:
+            return x_ind[0] == y_ind[0]
+        else:
+            return x_ind[0] == y_ind[0] and x_ind[1] == y_ind[1]
 
     def move10(self, solution):
         result = []
@@ -212,17 +222,49 @@ class TSUtils:
                         if not self.is_adj(solution, y1, y2):
                             continue
 
-                        if x1 in C1 and self.is_in_drone_route(solution, y1):
+                        if x1 in C1 and self.is_in_drone_route(solution, y2):
                             continue
 
-                        if y1 in C1 and self.is_in_drone_route(solution, x1):
+                        if y1 in C1 and self.is_in_drone_route(solution, x2):
                             continue
 
                         s = copy.deepcopy(solution)
-                        self.swap(s, x1, y2)
-                        self.swap(s, x2, y1)
 
-                        result.append(s)
+                        x1_ind = self.find_index(s, x1)
+                        x2_ind = self.find_index(s, x2)
+                        y1_ind = self.find_index(s, y1)
+                        y2_ind = self.find_index(s, y2)
+
+                        if self.is_in_same_trip(s, x1, y1):
+                            if x1_ind < y1_ind:
+                                if len(x1_ind) == 2:
+                                    tmp = s[x2_ind[0]][x2_ind[1]:y2_ind[1]]
+                                    tmp.reverse()
+                                    s[x2_ind[0]][x2_ind[1]:y2_ind[1]] = tmp
+                                else:
+                                    tmp = s[x2_ind[0]][x2_ind[1]][x2_ind[2]:y2_ind[2]]
+                                    tmp.reverse()
+                                    s[x2_ind[0]][x2_ind[1]][x2_ind[2]:y2_ind[2]] = tmp
+                                result.append(s)
+                        else:
+                            if len(x2_ind) == 2:
+                                tmp1 = s[x2_ind[0]][x2_ind[1]:]
+                            else:
+                                tmp1 = s[x2_ind[0]][x2_ind[1]][x2_ind[2]:]
+
+                            if len(y2_ind) == 2:
+                                tmp2 = s[y2_ind[0]][y2_ind[1]:]
+                                s[y2_ind[0]][y2_ind[1]:] = tmp1
+                            else:
+                                tmp2 = s[y2_ind[0]][y2_ind[1]][y2_ind[2]:]
+                                s[y2_ind[0]][y2_ind[1]][y2_ind[2]:] = tmp1
+
+                            if len(x2_ind) == 2:
+                                s[x2_ind[0]][x2_ind[1]:] = tmp2
+                            else:
+                                s[x2_ind[0]][x2_ind[1]][x2_ind[2]:] = tmp2
+                            result.append(s)
+
         return result
 
 
