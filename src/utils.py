@@ -33,12 +33,26 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, is_use_pe
                 tmp1 += tau_a[trip[k], trip[k + 1]]
                 S[trip[k + 1]] = tmp1
             T[i, j] = tmp1 + tau_a[trip[-1], num_cus + 1]
-            tmp += tmp1
+            tmp += T[i, j]
 
         if tmp > 0:
             B[i] = tmp
 
     c = max(max(A.values()), max(B.values()))
+
+    for i, staff in enumerate(staff_path_list):
+        if len(staff) == 0:
+            continue
+        for j in staff:
+            cz += max(0, A[i] - S[j] - config.params["L_w"])
+    for i, drone in enumerate(drone_path_list):
+        for j, trip in enumerate(drone):
+            if len(trip) == 0:
+                continue
+            for k in trip:
+                cz += max(0, T[i, j] - S[k] - config.params["L_w"])
+
+            dz += max(0, T[i, j] - config.params["L_d"])
 
     if print_log:
         print(f"A: {A}")
@@ -48,7 +62,7 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, is_use_pe
         print(f"T: {dz}")
         print(f"T: {cz}")
 
-    return c + alpha1*dz + alpha2*cz if is_use_penalty else c
+    return c + alpha1 * dz + alpha2 * cz if is_use_penalty else c
 
 
 def make_dirs(path):
