@@ -8,6 +8,7 @@ from omegaconf import OmegaConf
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
+from src.ts.tabu import TabuSearch
 from src.ts.ts_utils import TSUtils
 from src.utils import cal
 
@@ -21,11 +22,12 @@ if __name__ == '__main__':
     config.result_folder = os.path.join(config.result_folder, datetime.now().strftime("%m%d%Y%H%M%S"))
     if config.run_type == "ts":
         inp = load_input(config, config.data_path)
-        sol = TSUtils(config, inp)
-        print(sol.solution)
-        print(sol.get_score())
+        ts = TabuSearch(inp, config, None, 5, 100)
+        print(ts.initial_state)
+        a = ts.utils.move2opt(ts.initial_state)
+        print("done!")
 
-    elif config.run_type == "test":
+    elif config.run_type == "test1":
         inp = load_input(config, config.test.data_path)
         print(
             f"Final result: "

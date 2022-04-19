@@ -1,9 +1,17 @@
 import copy
+from enum import Enum
 
 from src.utils import cal
 
 
 class TSUtils:
+    class MoveType(Enum):
+        move10 = 1
+        move11 = 2
+        move20 = 3
+        move21 = 4
+        two_opt = 5
+
     def __init__(self, config, inp):
         self.config = config
         self.inp = inp
@@ -16,12 +24,9 @@ class TSUtils:
                    solution[:self.config.params["num_drone"]], self.inp['tau'],
                    self.inp['tau_a'], self.inp['num_cus'], self.config)
 
-    def get_all_neighbor(self):
-        result = []
-
-        # TODO: get all neighbor
-
-        return result
+    def get_all_neighbors(self, solution):
+        return {TSUtils.MoveType.move10: self.move10(solution), TSUtils.MoveType.move20: self.move20(solution),
+                TSUtils.MoveType.move11: self.move11(solution), TSUtils.MoveType.move21: self.move21(solution)}
 
     def find_index(self, solution, val):
         for i in range(self.num_drone):
@@ -147,9 +152,11 @@ class TSUtils:
                     continue
 
                 s = copy.deepcopy(solution)
+
                 self.swap(s, x, y)
 
                 result.append(s)
+        return result
 
     def move20(self, solution):
         result = []
@@ -172,9 +179,11 @@ class TSUtils:
                     self.delete_by_val(s, x1)
                     self.delete_by_val(s, x2)
                     self.insert_after(s, x1, y)
-                    self.insert_after(s, x2, 1)
+                    self.insert_after(s, x2, x1)
 
                     result.append(s)
+
+        return result
 
     def move21(self, solution):
         result = []
