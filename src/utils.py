@@ -38,7 +38,12 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, is_use_pe
         if tmp > 0:
             B[i] = tmp
 
-    c = max(max(A.values()), max(B.values()))
+    if len(B) == 0:
+        c = max(A.values())
+    elif len(A) == 0:
+        c = max(B.values())
+    else:
+        c = max(max(A.values()), max(B.values()))
 
     for i, staff in enumerate(staff_path_list):
         if len(staff) == 0:

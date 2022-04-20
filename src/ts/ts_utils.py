@@ -1,32 +1,26 @@
 import copy
-from enum import Enum
 
 from src.utils import cal
 
 
 class TSUtils:
-    class MoveType(Enum):
-        move10 = 1
-        move11 = 2
-        move20 = 3
-        move21 = 4
-        two_opt = 5
-
     def __init__(self, config, inp):
         self.config = config
         self.inp = inp
         self.num_cus = self.inp["num_cus"]
         self.num_staff = self.config.params["num_staff"]
         self.num_drone = self.config.params["num_drone"]
+        self.action = {"move10": self.move10, "move11": self.move11,
+                       "move20": self.move20, "move21": self.move21,
+                       "move2opt": self.move2opt}
 
     def get_score(self, solution):
         return cal(solution[self.config.params["num_drone"]:],
                    solution[:self.config.params["num_drone"]], self.inp['tau'],
                    self.inp['tau_a'], self.inp['num_cus'], self.config)
 
-    def get_all_neighbors(self, solution):
-        return {TSUtils.MoveType.move10: self.move10(solution), TSUtils.MoveType.move20: self.move20(solution),
-                TSUtils.MoveType.move11: self.move11(solution), TSUtils.MoveType.move21: self.move21(solution)}
+    def get_all_neighbors(self, solution, act):
+        return self.action[act](solution)
 
     def find_index(self, solution, val):
         for i in range(self.num_drone):
@@ -113,7 +107,7 @@ class TSUtils:
             return x_ind[0] == y_ind[0] and x_ind[1] == y_ind[1]
 
     def move10(self, solution):
-        result = []
+        result = {}
         num_cus = self.inp["num_cus"]
         C1 = self.inp["C1"]
 
@@ -130,12 +124,12 @@ class TSUtils:
 
                 self.delete_by_val(s, x)
                 self.insert_after(s, x, y)
-                result.append(s)
+                result[x, y] = s
 
         return result
 
     def move11(self, solution):
-        result = []
+        result = {}
 
         num_cus = self.inp["num_cus"]
         C1 = self.inp["C1"]
@@ -155,11 +149,11 @@ class TSUtils:
 
                 self.swap(s, x, y)
 
-                result.append(s)
+                result[x, y] = s
         return result
 
     def move20(self, solution):
-        result = []
+        result = {}
         num_cus = self.inp["num_cus"]
         C1 = self.inp["C1"]
 
@@ -181,12 +175,12 @@ class TSUtils:
                     self.insert_after(s, x1, y)
                     self.insert_after(s, x2, x1)
 
-                    result.append(s)
+                    result[x1, x2, y] = s
 
         return result
 
     def move21(self, solution):
-        result = []
+        result = {}
 
         num_cus = self.inp["num_cus"]
         C1 = self.inp["C1"]
@@ -211,11 +205,11 @@ class TSUtils:
                     self.delete_by_val(solution, x2)
                     self.insert_after(solution, x2, x1)
 
-                    result.append(s)
+                    result[x1, x2, y] = s
         return result
 
     def move2opt(self, solution):
-        result = []
+        result = {}
 
         num_cus = self.inp["num_cus"]
         C1 = self.inp["C1"]
@@ -254,7 +248,7 @@ class TSUtils:
                                     tmp = s[x2_ind[0]][x2_ind[1]][x2_ind[2]:y2_ind[2]]
                                     tmp.reverse()
                                     s[x2_ind[0]][x2_ind[1]][x2_ind[2]:y2_ind[2]] = tmp
-                                result.append(s)
+                                result[x1, x2, y1, y2] = s
                         else:
                             if len(x2_ind) == 2:
                                 tmp1 = s[x2_ind[0]][x2_ind[1]:]
@@ -272,7 +266,7 @@ class TSUtils:
                                 s[x2_ind[0]][x2_ind[1]:] = tmp2
                             else:
                                 s[x2_ind[0]][x2_ind[1]][x2_ind[2]:] = tmp2
-                            result.append(s)
+                            result[x1, x2, y1, y2] = s
 
         return result
 

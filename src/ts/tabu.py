@@ -1,10 +1,6 @@
-import copy
-from abc import ABCMeta, abstractmethod
-from copy import deepcopy
-from collections import deque
 import random
-
-from numpy import argmax
+from collections import deque
+from copy import deepcopy
 
 from src.ts.ts_utils import TSUtils
 
@@ -13,32 +9,29 @@ class TabuSearch:
     """
     Conducts tabu search
     """
-    __metaclass__ = ABCMeta
-
     cur_steps = None
 
     tabu_size = None
-    tabu_list = None
+    tabu_dict = None
 
     initial_state = None
     current = None
     best = None
 
     max_steps = None
-    max_score = None
 
-    def __init__(self, inp, config, initial_state, tabu_size, max_steps, max_score=None):
+    def __init__(self, inp, config, initial_state, tabu_size, max_steps):
         """
 
         :param initial_state: initial state, should implement __eq__ or __cmp__
         :param tabu_size: number of states to keep in tabu list
         :param max_steps: maximum number of steps to run algorithm for
-        :param max_score: score to stop algorithm once reached
         """
         self.config = config
         self.inp = inp
 
         self.utils = TSUtils(config, inp)
+        self.actions = list(self.utils.action.keys())
 
         if initial_state is None:
             initial_state = self.init_solution()
@@ -53,12 +46,6 @@ class TabuSearch:
             self.max_steps = max_steps
         else:
             raise TypeError('Maximum steps must be a positive integer')
-
-        if max_score is not None:
-            if isinstance(max_score, (int, float)):
-                self.max_score = float(max_score)
-            else:
-                raise TypeError('Maximum score must be a numeric type')
 
     def init_solution(self):
         num_cus = self.inp["num_cus"]
@@ -135,11 +122,12 @@ class TabuSearch:
         :return: None
         """
         self.cur_steps = 0
-        self.tabu_list = deque(maxlen=self.tabu_size)
+        self.tabu_dict = {}
+        for act in self.actions:
+            self.tabu_dict[act] = deque(maxlen=self.tabu_size)
         self.current = self.initial_state
         self.best = self.initial_state
 
-    @abstractmethod
     def _score(self, state):
         """
         Returns objective function value of a state
@@ -147,16 +135,17 @@ class TabuSearch:
         :param state: a state
         :return: objective function value of state
         """
-        self.utils.get_score(state)
+        return self.utils.get_score(state)
 
-    @abstractmethod
     def _neighborhood(self):
         """
         Returns list of all members of neighborhood of current state, given self.current
 
         :return: list of members of neighborhood
         """
-        pass
+        act = random.choice(self.actions)
+
+        return act, self.utils.get_all_neighbors(self.current, act)
 
     def _best(self, neighborhood):
         """
@@ -165,7 +154,8 @@ class TabuSearch:
         :param neighborhood: a neighborhood
         :return: best member of neighborhood
         """
-        return neighborhood[argmax([self._score(x) for x in neighborhood])]
+
+        return min(neighborhood.items(), key=lambda x: self._score(x[1]))
 
     def run(self, verbose=True):
         """
@@ -175,36 +165,32 @@ class TabuSearch:
         :return: best state and objective function value of best state
         """
         self._clear()
-        for i in range(self.max_steps):
+        for _ in range(self.max_steps):
             self.cur_steps += 1
 
-            if ((i + 1) % 100 == 0) and verbose:
-                print(self)
+            act, neighborhood = self._neighborhood()
+            ext, neighborhood_best = self._best(neighborhood)
 
-            neighborhood = self._neighborhood()
-            neighborhood_best = self._best(neighborhood)
-
+            tabu_list = self.tabu_dict[act]
             while True:
-                if all([x in self.tabu_list for x in neighborhood]):
+                if all([x in tabu_list for x in neighborhood.keys()]):
                     print("TERMINATING - NO SUITABLE NEIGHBORS")
                     return self.best, self._score(self.best)
-                if neighborhood_best in self.tabu_list:
-                    if self._score(neighborhood_best) > self._score(self.best):
-                        self.tabu_list.append(neighborhood_best)
-                        self.best = deepcopy(neighborhood_best)
-                        break
-                    else:
-                        neighborhood.remove(neighborhood_best)
-                        neighborhood_best = self._best(neighborhood)
-                else:
-                    self.tabu_list.append(neighborhood_best)
+                if ext in tabu_list and self._score(neighborhood_best) < self._score(self.best):
+                    tabu_list.append(ext)
                     self.current = neighborhood_best
-                    if self._score(self.current) > self._score(self.best):
+                    self.best = deepcopy(neighborhood_best)
+                    break
+                else:
+                    tabu_list.append(ext)
+                    self.current = neighborhood_best
+                    if self._score(self.current) < self._score(self.best):
                         self.best = deepcopy(self.current)
                     break
-
-            if self.max_score is not None and self._score(self.best) > self.max_score:
-                print("TERMINATING - REACHED MAXIMUM SCORE")
-                return self.best, self._score(self.best)
+            if verbose:
+                print(f"Step: {self.cur_steps} - Best: {self._score(self.best)} - Step Best: {self._score(self.current)}")
         print("TERMINATING - REACHED MAXIMUM STEPS")
+        if verbose:
+            print(self)
+
         return self.best, self._score(self.best)
