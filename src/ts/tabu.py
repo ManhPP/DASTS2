@@ -190,29 +190,28 @@ class TabuSearch:
             ext, neighborhood_best = self._best(neighborhood)
 
             tabu_list = self.tabu_dict[act]
-            while True:
-                if all([x in tabu_list for x in neighborhood.keys()]):
-                    print("TERMINATING - NO SUITABLE NEIGHBORS")
-                    return self.best, self._score(self.best)
 
-                step_best_info = self._score(neighborhood_best, True)
-                best_score = self._score(self.best)
-                if ext in tabu_list and step_best_info[0] < best_score:
-                    tabu_list.append(ext)
-                    self.current = neighborhood_best
-                    self.best = deepcopy(neighborhood_best)
+            if all([x in tabu_list for x in neighborhood.keys()]):
+                print("TERMINATING - NO SUITABLE NEIGHBORS")
+                return self.best, self._score(self.best)
 
-                    self.update_penalty_param(step_best_info[1], step_best_info[2])
+            step_best_info = self._score(neighborhood_best, True)
+            best_score = self._score(self.best)
+            tabu_list.append(ext)
 
-                    break
-                else:
-                    tabu_list.append(ext)
-                    self.current = neighborhood_best
-                    current_info = self._score(self.current, True)
-                    if current_info[0] < best_score:
-                        self.best = deepcopy(self.current)
-                        self.update_penalty_param(current_info[1], current_info[2])
-                    break
+            if ext in tabu_list and step_best_info[0] < best_score:
+                self.current = neighborhood_best
+                self.best = deepcopy(neighborhood_best)
+
+                self.update_penalty_param(step_best_info[1], step_best_info[2])
+
+            else:
+                self.current = neighborhood_best
+                current_info = self._score(self.current, True)
+                if current_info[0] < best_score:
+                    self.best = deepcopy(self.current)
+                    self.update_penalty_param(current_info[1], current_info[2])
+
             if verbose:
                 print(f"Step: {self.cur_steps} - Best: {self._score(self.best)} - Step Best: {self._score(self.current)}")
         print("TERMINATING - REACHED MAXIMUM STEPS")

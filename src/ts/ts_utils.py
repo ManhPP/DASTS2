@@ -371,7 +371,23 @@ class TSUtils:
         :return:
         """
 
-        pass
+        result = {}
+
+        num_cus = self.inp["num_cus"]
+        C1 = self.inp["C1"]
+
+        for x in range(1, num_cus + 1):
+            s = copy.deepcopy(solution)
+
+            x_ind = self.find_index(s, x)
+
+            if len(x_ind) == 2:
+                pass
+
+            else:
+                pass
+
+        return result
 
 
 if __name__ == '__main__':
