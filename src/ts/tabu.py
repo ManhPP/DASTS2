@@ -129,14 +129,16 @@ class TabuSearch:
         self.current = self.initial_state
         self.best = self.initial_state
 
-    def _score(self, state):
+    def _score(self, state, return_all=False):
         """
         Returns objective function value of a state
 
         :param state: a state
         :return: objective function value of state
         """
-        return self.utils.get_score(state, self.penalty_params)
+        if return_all:
+            return self.utils.get_score(state, self.penalty_params)
+        return self.utils.get_score(state, self.penalty_params)[0]
 
     def _neighborhood(self):
         """
@@ -158,6 +160,21 @@ class TabuSearch:
 
         return min(neighborhood.items(), key=lambda x: self._score(x[1]))
 
+    def update_penalty_param(self, dz, cz):
+        alpha1 = self.penalty_params.get("alpha1", 0)
+        alpha2 = self.penalty_params.get("alpha2", 0)
+        beta = self.penalty_params.get("beta", 0)
+
+        if dz > 0:
+            self.penalty_params["alpha1"] = alpha1 * (1 + beta)
+        else:
+            self.penalty_params["alpha1"] = alpha1 / (1 + beta)
+
+        if cz > 0:
+            self.penalty_params["alpha2"] = alpha2 * (1 + beta)
+        else:
+            self.penalty_params["alpha2"] = alpha2 / (1 + beta)
+
     def run(self, verbose=True):
         """
         Conducts tabu search
@@ -177,16 +194,24 @@ class TabuSearch:
                 if all([x in tabu_list for x in neighborhood.keys()]):
                     print("TERMINATING - NO SUITABLE NEIGHBORS")
                     return self.best, self._score(self.best)
-                if ext in tabu_list and self._score(neighborhood_best) < self._score(self.best):
+
+                step_best_info = self._score(neighborhood_best, True)
+                best_score = self._score(self.best)
+                if ext in tabu_list and step_best_info[0] < best_score:
                     tabu_list.append(ext)
                     self.current = neighborhood_best
                     self.best = deepcopy(neighborhood_best)
+
+                    self.update_penalty_param(step_best_info[1], step_best_info[2])
+
                     break
                 else:
                     tabu_list.append(ext)
                     self.current = neighborhood_best
-                    if self._score(self.current) < self._score(self.best):
+                    current_info = self._score(self.current, True)
+                    if current_info[0] < best_score:
                         self.best = deepcopy(self.current)
+                        self.update_penalty_param(current_info[1], current_info[2])
                     break
             if verbose:
                 print(f"Step: {self.cur_steps} - Best: {self._score(self.best)} - Step Best: {self._score(self.current)}")

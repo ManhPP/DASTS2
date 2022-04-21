@@ -80,19 +80,8 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=N
 
     alpha1 = penalty.get("alpha1", 0)
     alpha2 = penalty.get("alpha2", 0)
-    beta = penalty.get("beta", 0)
 
-    if dz > 0:
-        penalty["alpha1"] = alpha1 * (1 + beta)
-    else:
-        penalty["alpha1"] = alpha1 / (1 + beta)
-
-    if cz > 0:
-        penalty["alpha2"] = alpha2 * (1 + beta)
-    else:
-        penalty["alpha2"] = alpha2 / (1 + beta)
-
-    return c + alpha1 * dz + alpha2 * cz
+    return c + alpha1 * dz + alpha2 * cz, dz, cz
 
 
 def make_dirs(path):
