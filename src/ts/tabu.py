@@ -23,9 +23,9 @@ class TabuSearch:
     def __init__(self, inp, config, initial_state, tabu_size, max_steps):
         """
 
-        :param initial_state: initial state, should implement __eq__ or __cmp__
-        :param tabu_size: number of states to keep in tabu list
-        :param max_steps: maximum number of steps to run algorithm for
+        :param initial_state:
+        :param tabu_size:
+        :param max_steps:
         """
         self.config = config
         self.inp = inp
@@ -120,7 +120,7 @@ class TabuSearch:
         """
         Resets the variables that are altered on a per-run basis of the algorithm
 
-        :return: None
+        :return:
         """
         self.cur_steps = 0
         self.tabu_dict = {}
@@ -133,8 +133,8 @@ class TabuSearch:
         """
         Returns objective function value of a state
 
-        :param state: a state
-        :return: objective function value of state
+        :param state:
+        :return:
         """
         if return_all:
             return self.utils.get_score(state, self.penalty_params)
@@ -144,7 +144,7 @@ class TabuSearch:
         """
         Returns list of all members of neighborhood of current state, given self.current
 
-        :return: list of members of neighborhood
+        :return:
         """
         act = random.choice(self.actions)
 
@@ -154,8 +154,8 @@ class TabuSearch:
         """
         Finds the best member of a neighborhood
 
-        :param neighborhood: a neighborhood
-        :return: best member of neighborhood
+        :param neighborhood:
+        :return:
         """
 
         return min(neighborhood.items(), key=lambda x: self._score(x[1]))
@@ -179,8 +179,8 @@ class TabuSearch:
         """
         Conducts tabu search
 
-        :param verbose: indicates whether or not to print progress regularly
-        :return: best state and objective function value of best state
+        :param verbose:
+        :return:
         """
         self._clear()
         for _ in range(self.max_steps):
