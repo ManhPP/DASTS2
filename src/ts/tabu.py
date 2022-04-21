@@ -1,3 +1,4 @@
+import json
 import random
 from collections import deque
 from copy import deepcopy
@@ -182,40 +183,57 @@ class TabuSearch:
         :param verbose:
         :return:
         """
+
+        r = {}
         self._clear()
         for _ in range(self.max_steps):
             self.cur_steps += 1
-
-            act, neighborhood = self._neighborhood()
-            ext, neighborhood_best = self._best(neighborhood)
-
-            tabu_list = self.tabu_dict[act]
-
-            if all([x in tabu_list for x in neighborhood.keys()]):
-                print("TERMINATING - NO SUITABLE NEIGHBORS")
-                return self.best, self._score(self.best)
-
-            step_best_info = self._score(neighborhood_best, True)
-            best_score = self._score(self.best)
-            tabu_list.append(ext)
-
-            if ext in tabu_list and step_best_info[0] < best_score:
-                self.current = neighborhood_best
-                self.best = deepcopy(neighborhood_best)
-
-                self.update_penalty_param(step_best_info[1], step_best_info[2])
-
-            else:
-                self.current = neighborhood_best
-                current_info = self._score(self.current, True)
-                if current_info[0] < best_score:
-                    self.best = deepcopy(self.current)
-                    self.update_penalty_param(current_info[1], current_info[2])
-
             if verbose:
                 print(f"Step: {self.cur_steps} - Best: {self._score(self.best)} - Step Best: {self._score(self.current)}")
+            act, neighborhood = self._neighborhood()
+            ext, neighborhood_best = self._best(neighborhood)
+            tabu_list = self.tabu_dict[act]
+
+            while True:
+
+                if all([x in tabu_list for x in neighborhood]):
+                    print("TERMINATING - NO SUITABLE NEIGHBORS")
+                    return self.best, self._score(self.best)
+
+                step_best_info = self._score(neighborhood_best, True)
+                best_score = self._score(self.best)
+
+                if ext in tabu_list:
+                    if step_best_info[0] < best_score:
+                        self.current = neighborhood_best
+                        self.update_penalty_param(step_best_info[1], step_best_info[2])
+                        self.best = deepcopy(neighborhood_best)
+                        tabu_list.append(ext)
+                        r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
+                                             "current": f"{self._score(self.current)} - {self.current}",
+                                             "action": act,
+                                             "ext": str(ext)}
+                        break
+                    else:
+                        neighborhood.pop(ext)
+                        ext, neighborhood_best = self._best(neighborhood)
+                else:
+                    self.current = neighborhood_best
+                    current_info = self._score(self.current, True)
+                    if current_info[0] < best_score:
+                        self.best = deepcopy(self.current)
+                        self.update_penalty_param(current_info[1], current_info[2])
+                        tabu_list.append(ext)
+                    r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
+                                         "current": f"{self._score(self.current)} - {self.current}",
+                                         "action": act,
+                                         "ext": str(ext)}
+                    break
         print("TERMINATING - REACHED MAXIMUM STEPS")
         if verbose:
             print(self)
+        print(self.initial_state)
 
+        with open('result.json', 'w') as json_file:
+            json.dump(r, json_file, indent=2)
         return self.best, self._score(self.best)

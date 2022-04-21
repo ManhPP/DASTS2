@@ -86,6 +86,10 @@ class TSUtils:
         if val <= self.num_cus:
             self.delete_by_ind(solution, self.find_index(solution, val))
 
+    def refactor(self, solution):
+        for i in range(self.num_drone):
+            solution[i] = list(filter(lambda a: a != [], solution[i]))
+
     def insert_after(self, solution, val1, val2):
         """
 
@@ -174,6 +178,8 @@ class TSUtils:
             return x_ind[0] == y_ind[0]
         else:
             return x_ind[0] == y_ind[0] and x_ind[1] == y_ind[1]
+
+    # ACTION
 
     def move10(self, solution):
         """
@@ -291,8 +297,8 @@ class TSUtils:
                     s = copy.deepcopy(solution)
 
                     self.swap(s, x1, y)
-                    self.delete_by_val(solution, x2)
-                    self.insert_after(solution, x2, x1)
+                    self.delete_by_val(s, x2)
+                    self.insert_after(s, x2, x1)
 
                     result[x1, x2, y] = s
         return result
@@ -380,14 +386,51 @@ class TSUtils:
             s = copy.deepcopy(solution)
 
             x_ind = self.find_index(s, x)
+            self.delete_by_val(s, x)
+            self.refactor(s)
 
-            if len(x_ind) == 2:
-                pass
+            for i in range(self.num_drone + self.num_staff):
+                if i < self.num_drone and x in C1:
+                    continue
 
-            else:
-                pass
-
+                if not s[i]:
+                    if i < self.num_drone:
+                        s[i].apeend([x])
+                    else:
+                        s[i].append(x)
+                else:
+                    for j in range(len(s[i]) + 1):
+                        if i < self.num_drone:
+                            s[i].insert(j, [x])
         return result
+
+    # POST OPTIMIZATION
+    def intra_relocate(self, solution):
+        pass
+
+    def intra_exchange(self, solution):
+        pass
+
+    def intra_2_opt(self, solution):
+        pass
+
+    def intra_or_opt(self, solution):
+        pass
+
+    def inter_relocate(self, solution):
+        pass
+
+    def inter_exchange(self, solution):
+        pass
+
+    def inter_2_opt(self, solution):
+        pass
+
+    def inter_or_opt(self, solution):
+        pass
+
+    def ejection(self, solution):
+        pass
 
 
 if __name__ == '__main__':

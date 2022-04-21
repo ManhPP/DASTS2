@@ -5,14 +5,16 @@ params:
   L_d: 120
   staff_velocity: 0.58
   drone_velocity: 0.83
-  num_staff: 3
-  num_drone: 3
+  num_staff: 1
+  num_drone: 1
 
 data_path: data/old/12.20.4.txt
 
 result_folder: result
 
 tabu_params:
+  tabu_size: 5
+  max_iter: 100
   alpha1: 1
   alpha2: 1
   beta: 0.5

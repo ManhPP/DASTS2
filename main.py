@@ -21,7 +21,7 @@ if __name__ == '__main__':
     config.result_folder = os.path.join(config.result_folder, datetime.now().strftime("%m%d%Y%H%M%S"))
     if config.run_type == "ts":
         inp = load_input(config, config.data_path)
-        ts = TabuSearch(inp, config, None, 5, 100)
+        ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size, config.tabu_params.max_iter)
         ts.run()
         print("done!")
 
