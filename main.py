@@ -29,7 +29,7 @@ if __name__ == '__main__':
         inp = load_input(config, config.test.data_path)
         print(
             f"Final result: "
-            f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config, False)}")
+            f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config, {})}")
 
     else:
         for data_path in config.data_path.split(","):

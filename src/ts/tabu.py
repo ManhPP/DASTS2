@@ -29,6 +29,7 @@ class TabuSearch:
         """
         self.config = config
         self.inp = inp
+        self.penalty_params = self.config.tabu_params
 
         self.utils = TSUtils(config, inp)
         self.actions = list(self.utils.action.keys())
@@ -135,7 +136,7 @@ class TabuSearch:
         :param state: a state
         :return: objective function value of state
         """
-        return self.utils.get_score(state)
+        return self.utils.get_score(state, self.penalty_params)
 
     def _neighborhood(self):
         """

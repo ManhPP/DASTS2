@@ -5,6 +5,11 @@ from src.utils import cal
 
 class TSUtils:
     def __init__(self, config, inp):
+        """
+
+        :param config:
+        :param inp:
+        """
         self.config = config
         self.inp = inp
         self.num_cus = self.inp["num_cus"]
@@ -14,15 +19,33 @@ class TSUtils:
                        "move20": self.move20, "move21": self.move21,
                        "move2opt": self.move2opt}
 
-    def get_score(self, solution):
+    def get_score(self, solution, penalty):
+        """
+
+        :param solution:
+        :param penalty:
+        :return:
+        """
         return cal(solution[self.config.params["num_drone"]:],
                    solution[:self.config.params["num_drone"]], self.inp['tau'],
-                   self.inp['tau_a'], self.inp['num_cus'], self.config)
+                   self.inp['tau_a'], self.inp['num_cus'], self.config, penalty)
 
     def get_all_neighbors(self, solution, act):
+        """
+
+        :param solution:
+        :param act:
+        :return:
+        """
         return self.action[act](solution)
 
     def find_index(self, solution, val):
+        """
+
+        :param solution:
+        :param val:
+        :return:
+        """
         for i in range(self.num_drone):
             drone_trip = solution[i]
             for j, trip in enumerate(drone_trip):
@@ -39,6 +62,12 @@ class TSUtils:
         return None
 
     def delete_by_ind(self, solution, index):
+        """
+
+        :param solution:
+        :param index:
+        :return:
+        """
         if len(index) == 2:
             if index[0] >= self.num_drone:
                 solution[index[0]].pop(index[1])
@@ -48,10 +77,23 @@ class TSUtils:
                 solution[index[0]][index[1]].pop(index[2])
 
     def delete_by_val(self, solution, val):
+        """
+
+        :param solution:
+        :param val:
+        :return:
+        """
         if val <= self.num_cus:
             self.delete_by_ind(solution, self.find_index(solution, val))
 
     def insert_after(self, solution, val1, val2):
+        """
+
+        :param solution:
+        :param val1:
+        :param val2:
+        :return:
+        """
         index = self.find_index(solution, val2)
 
         if len(index) == 2:
@@ -63,12 +105,25 @@ class TSUtils:
                 solution[index[0]][index[1]].insert(index[2] + 1, val1)
 
     def is_in_drone_route(self, solution, val):
+        """
+
+        :param solution:
+        :param val:
+        :return:
+        """
         index = self.find_index(solution, val)
         if index[0] >= self.num_drone:
             return False
         return True
 
     def is_adj(self, solution, val1, val2):
+        """
+
+        :param solution:
+        :param val1:
+        :param val2:
+        :return:
+        """
         ind1 = self.find_index(solution, val1)
         ind2 = self.find_index(solution, val2)
 
@@ -82,6 +137,13 @@ class TSUtils:
             return ind1[0] == ind2[0] and ind1[1] == ind2[1] and ind2[2] == ind1[2] + 1
 
     def swap(self, solution, x, y):
+        """
+
+        :param solution:
+        :param x:
+        :param y:
+        :return:
+        """
         x_ind = self.find_index(solution, x)
         y_ind = self.find_index(solution, y)
 
@@ -96,6 +158,13 @@ class TSUtils:
             solution[y_ind[0]][y_ind[1]][y_ind[2]] = x
 
     def is_in_same_trip(self, solution, x, y):
+        """
+
+        :param solution:
+        :param x:
+        :param y:
+        :return:
+        """
         x_ind = self.find_index(solution, x)
         y_ind = self.find_index(solution, y)
 
@@ -107,6 +176,11 @@ class TSUtils:
             return x_ind[0] == y_ind[0] and x_ind[1] == y_ind[1]
 
     def move10(self, solution):
+        """
+
+        :param solution:
+        :return:
+        """
         result = {}
         num_cus = self.inp["num_cus"]
         C1 = self.inp["C1"]
@@ -129,6 +203,11 @@ class TSUtils:
         return result
 
     def move11(self, solution):
+        """
+
+        :param solution:
+        :return:
+        """
         result = {}
 
         num_cus = self.inp["num_cus"]
@@ -153,6 +232,11 @@ class TSUtils:
         return result
 
     def move20(self, solution):
+        """
+
+        :param solution:
+        :return:
+        """
         result = {}
         num_cus = self.inp["num_cus"]
         C1 = self.inp["C1"]
@@ -180,6 +264,11 @@ class TSUtils:
         return result
 
     def move21(self, solution):
+        """
+
+        :param solution:
+        :return:
+        """
         result = {}
 
         num_cus = self.inp["num_cus"]
@@ -209,6 +298,11 @@ class TSUtils:
         return result
 
     def move2opt(self, solution):
+        """
+
+        :param solution:
+        :return:
+        """
         result = {}
 
         num_cus = self.inp["num_cus"]
@@ -269,6 +363,15 @@ class TSUtils:
                             result[x1, x2, y1, y2] = s
 
         return result
+
+    def move1(self, solution):
+        """
+
+        :param solution:
+        :return:
+        """
+
+        pass
 
 
 if __name__ == '__main__':

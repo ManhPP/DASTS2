@@ -1,8 +1,19 @@
 import os
 
 
-def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, is_use_penalty=True, alpha1=0, alpha2=0,
-        print_log=False):
+def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=None, print_log=False):
+    """
+
+    :param penalty:
+    :param staff_path_list:
+    :param drone_path_list:
+    :param tau:
+    :param tau_a:
+    :param num_cus:
+    :param config:
+    :param print_log:
+    :return:
+    """
     T = {}
     A = {}
     B = {}
@@ -67,10 +78,29 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, is_use_pe
         print(f"T: {dz}")
         print(f"T: {cz}")
 
-    return c + alpha1 * dz + alpha2 * cz if is_use_penalty else c
+    alpha1 = penalty.get("alpha1", 0)
+    alpha2 = penalty.get("alpha2", 0)
+    beta = penalty.get("beta", 0)
+
+    if dz > 0:
+        penalty["alpha1"] = alpha1 * (1 + beta)
+    else:
+        penalty["alpha1"] = alpha1 / (1 + beta)
+
+    if cz > 0:
+        penalty["alpha2"] = alpha2 * (1 + beta)
+    else:
+        penalty["alpha2"] = alpha2 / (1 + beta)
+
+    return c + alpha1 * dz + alpha2 * cz
 
 
 def make_dirs(path):
+    """
+
+    :param path:
+    :return:
+    """
     if not os.path.exists(path):
         os.makedirs(path)
 

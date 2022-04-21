@@ -8,7 +8,7 @@ params:
   num_staff: 3
   num_drone: 3
 
-data_path: data/old/50.20.4.txt
+data_path: data/old/12.20.4.txt
 
 result_folder: result
 
