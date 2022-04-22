@@ -189,10 +189,13 @@ class TabuSearch:
         for _ in range(self.max_steps):
             self.cur_steps += 1
             if verbose:
-                print(f"Step: {self.cur_steps} - Best: {self._score(self.best)} - Step Best: {self._score(self.current)}")
+                print(
+                    f"Step: {self.cur_steps} - Best: {self._score(self.best)} - Step Best: {self._score(self.current)}")
             act, neighborhood = self._neighborhood()
             ext, neighborhood_best = self._best(neighborhood)
             tabu_list = self.tabu_dict[act]
+
+            cur = self.current
 
             while True:
 
@@ -210,9 +213,12 @@ class TabuSearch:
                         self.best = deepcopy(neighborhood_best)
                         tabu_list.append(ext)
                         r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
+                                             "old_current": f"{self._score(cur)} - {cur}",
                                              "current": f"{self._score(self.current)} - {self.current}",
                                              "action": act,
-                                             "ext": str(ext)}
+                                             "ext": str(ext),
+                                             "tb:": str(self.tabu_dict),
+                                             "t": 1}
                         break
                     else:
                         neighborhood.pop(ext)
@@ -220,14 +226,17 @@ class TabuSearch:
                 else:
                     self.current = neighborhood_best
                     current_info = self._score(self.current, True)
+                    tabu_list.append(ext)
                     if current_info[0] < best_score:
                         self.best = deepcopy(self.current)
                         self.update_penalty_param(current_info[1], current_info[2])
-                        tabu_list.append(ext)
                     r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
+                                         "old_current": f"{self._score(cur)} - {cur}",
                                          "current": f"{self._score(self.current)} - {self.current}",
                                          "action": act,
-                                         "ext": str(ext)}
+                                         "ext": str(ext),
+                                         "tb:": str(self.tabu_dict),
+                                         "t": 2}
                     break
         print("TERMINATING - REACHED MAXIMUM STEPS")
         if verbose:
