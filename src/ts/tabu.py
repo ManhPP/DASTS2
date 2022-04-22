@@ -217,8 +217,7 @@ class TabuSearch:
                                              "current": f"{self._score(self.current)} - {self.current}",
                                              "action": act,
                                              "ext": str(ext),
-                                             "tb:": str(self.tabu_dict),
-                                             "t": 1}
+                                             "t": "in tabu"}
                         break
                     else:
                         neighborhood.pop(ext)
@@ -235,8 +234,7 @@ class TabuSearch:
                                          "current": f"{self._score(self.current)} - {self.current}",
                                          "action": act,
                                          "ext": str(ext),
-                                         "tb:": str(self.tabu_dict),
-                                         "t": 2}
+                                         "t": "not in tabu"}
                     break
         print("TERMINATING - REACHED MAXIMUM STEPS")
         if verbose:
