@@ -25,11 +25,11 @@ if __name__ == '__main__':
         ts.run()
         print("done!")
 
-    elif config.run_type == "test1":
+    elif config.run_type == "cal":
         inp = load_input(config, config.test.data_path)
         print(
             f"Final result: "
-            f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config, {})}")
+            f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config, {}, True)}")
 
     else:
         for data_path in config.data_path.split(","):

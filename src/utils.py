@@ -74,9 +74,9 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=N
         print(f"A: {A}")
         print(f"B: {B}")
         print(f"T: {T}")
-        print(f"T: {S}")
-        print(f"T: {dz}")
-        print(f"T: {cz}")
+        print(f"S: {S}")
+        print(f"dz: {dz}")
+        print(f"cz: {cz}")
 
     alpha1 = penalty.get("alpha1", 0)
     alpha2 = penalty.get("alpha2", 0)

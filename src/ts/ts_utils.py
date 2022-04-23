@@ -17,7 +17,7 @@ class TSUtils:
         self.num_drone = self.config.params["num_drone"]
         self.action = {"move10": self.move10, "move11": self.move11,
                        "move20": self.move20, "move21": self.move21,
-                       "move2opt": self.move2opt}
+                       "move2opt": self.move2opt, "move01": self.move01}
 
     def get_score(self, solution, penalty):
         """
@@ -204,6 +204,7 @@ class TSUtils:
 
                 self.delete_by_val(s, x)
                 self.insert_after(s, x, y)
+                self.refactor(s)
                 result[x, y] = s
 
         return result
@@ -264,7 +265,7 @@ class TSUtils:
                     self.delete_by_val(s, x2)
                     self.insert_after(s, x1, y)
                     self.insert_after(s, x2, x1)
-
+                    self.refactor(s)
                     result[x1, x2, y] = s
 
         return result
@@ -370,7 +371,7 @@ class TSUtils:
 
         return result
 
-    def move1(self, solution):
+    def move01(self, solution):
         """
 
         :param solution:
@@ -383,25 +384,26 @@ class TSUtils:
         C1 = self.inp["C1"]
 
         for x in range(1, num_cus + 1):
-            s = copy.deepcopy(solution)
 
-            x_ind = self.find_index(s, x)
-            self.delete_by_val(s, x)
-            self.refactor(s)
+            x_ind = self.find_index(solution, x)
 
             for i in range(self.num_drone + self.num_staff):
                 if i < self.num_drone and x in C1:
                     continue
 
-                if not s[i]:
+                for j in range(len(solution[i]) + 1):
+                    if self.num_drone <= i == x_ind[0] and j == x_ind[1]:
+                        continue
+                    s = copy.deepcopy(solution)
+                    self.delete_by_val(s, x)
+                    self.refactor(s)
                     if i < self.num_drone:
-                        s[i].apeend([x])
+                        s[i].insert(j, [x])
                     else:
-                        s[i].append(x)
-                else:
-                    for j in range(len(s[i]) + 1):
-                        if i < self.num_drone:
-                            s[i].insert(j, [x])
+                        s[i].insert(j, x)
+
+                    result[x, i, j] = s
+
         return result
 
     # POST OPTIMIZATION
