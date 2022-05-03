@@ -148,6 +148,7 @@ class TabuSearch:
         :return:
         """
         act = random.choice(self.actions)
+        print(f"act - {act}")
 
         return act, self.utils.get_all_neighbors(self.current, act)
 
@@ -192,6 +193,7 @@ class TabuSearch:
                 print(
                     f"Step: {self.cur_steps} - Best: {self._score(self.best)} - Step Best: {self._score(self.current)}")
             act, neighborhood = self._neighborhood()
+
             ext, neighborhood_best = self._best(neighborhood)
             tabu_list = self.tabu_dict[act]
 

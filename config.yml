@@ -1,4 +1,4 @@
-run_type: cal
+run_type: ts
 
 params:
   L_w: 60
@@ -30,5 +30,5 @@ solver:
 
 test:
   data_path: data/old/12.20.4.txt
-  staff: [[2, 10, 5, 7, 11]]
-  drone: [[[9], [12, 6, 1, 4, 8, 3]]]
+  staff: [[3, 2, 10, 5, 7, 11]]
+  drone: [[[12, 4, 1], [9, 6, 8]]]

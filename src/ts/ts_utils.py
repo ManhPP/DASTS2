@@ -140,6 +140,30 @@ class TSUtils:
         else:
             return ind1[0] == ind2[0] and ind1[1] == ind2[1] and ind2[2] == ind1[2] + 1
 
+    def dis(self, solution, x1, x2):
+        """
+
+        :param solution:
+        :param x1:
+        :param x2:
+        :return:
+        """
+        ind1 = self.find_index(solution, x1)
+        ind2 = self.find_index(solution, x2)
+
+        if len(ind1) != len(ind2):
+            return float("inf")
+
+        if len(ind1) == 2:
+            if ind1[0] == ind2[0]:
+                return ind2[1] - ind1[1]
+
+        if len(ind1) == 3:
+            if ind1[0] == ind2[0] and ind1[1] == ind2[1]:
+                return ind2[2] - ind1[2]
+
+        return float("inf")
+
     def swap(self, solution, x, y):
         """
 
@@ -189,23 +213,13 @@ class TSUtils:
         """
         result = {}
         num_cus = self.inp["num_cus"]
-        C1 = self.inp["C1"]
 
         for x in range(1, num_cus + 1):
 
             for y in range(1, num_cus + 1):
-                if x == y:
-                    continue
-
-                if x in C1 and self.is_in_drone_route(solution, y):
-                    continue
-
-                s = copy.deepcopy(solution)
-
-                self.delete_by_val(s, x)
-                self.insert_after(s, x, y)
-                self.refactor(s)
-                result[x, y] = s
+                s = self.relocate(solution, x, y)
+                if s is not None:
+                    result[x, y] = s
 
         return result
 
@@ -218,24 +232,12 @@ class TSUtils:
         result = {}
 
         num_cus = self.inp["num_cus"]
-        C1 = self.inp["C1"]
 
         for x in range(1, num_cus + 1):
             for y in range(1, num_cus + 1):
-                if x == y:
-                    continue
-
-                if x in C1 and self.is_in_drone_route(solution, y):
-                    continue
-
-                if y in C1 and self.is_in_drone_route(solution, x):
-                    continue
-
-                s = copy.deepcopy(solution)
-
-                self.swap(s, x, y)
-
-                result[x, y] = s
+                s = self.exchange(solution, x, y)
+                if s is not None:
+                    result[x, y] = s
         return result
 
     def move20(self, solution):
@@ -246,27 +248,13 @@ class TSUtils:
         """
         result = {}
         num_cus = self.inp["num_cus"]
-        C1 = self.inp["C1"]
 
         for x1 in range(1, num_cus + 1):
             for x2 in range(1, num_cus + 1):
-                if not self.is_adj(solution, x1, x2):
-                    continue
                 for y in range(1, num_cus + 1):
-                    if x1 == y or x2 == y:
-                        continue
-
-                    if x1 in C1 and self.is_in_drone_route(solution, y):
-                        continue
-
-                    s = copy.deepcopy(solution)
-
-                    self.delete_by_val(s, x1)
-                    self.delete_by_val(s, x2)
-                    self.insert_after(s, x1, y)
-                    self.insert_after(s, x2, x1)
-                    self.refactor(s)
-                    result[x1, x2, y] = s
+                    s = self.or_opt(solution, x1, x2, y)
+                    if s is not None:
+                        result[x1, x2, y] = s
 
         return result
 
@@ -313,62 +301,14 @@ class TSUtils:
         result = {}
 
         num_cus = self.inp["num_cus"]
-        C1 = self.inp["C1"]
 
         for x1 in range(1, num_cus + 1):
             for x2 in range(1, num_cus + 1):
-                if not self.is_adj(solution, x1, x2):
-                    continue
                 for y1 in range(1, num_cus + 1):
-                    if y1 == x1 or y1 == x2:
-                        continue
                     for y2 in range(1, num_cus + 1):
-                        if not self.is_adj(solution, y1, y2):
-                            continue
-
-                        if x1 in C1 and self.is_in_drone_route(solution, y2):
-                            continue
-
-                        if y1 in C1 and self.is_in_drone_route(solution, x2):
-                            continue
-
-                        s = copy.deepcopy(solution)
-
-                        x1_ind = self.find_index(s, x1)
-                        x2_ind = self.find_index(s, x2)
-                        y1_ind = self.find_index(s, y1)
-                        y2_ind = self.find_index(s, y2)
-
-                        if self.is_in_same_trip(s, x1, y1):
-                            if x1_ind < y1_ind:
-                                if len(x1_ind) == 2:
-                                    tmp = s[x2_ind[0]][x2_ind[1]:y2_ind[1]]
-                                    tmp.reverse()
-                                    s[x2_ind[0]][x2_ind[1]:y2_ind[1]] = tmp
-                                else:
-                                    tmp = s[x2_ind[0]][x2_ind[1]][x2_ind[2]:y2_ind[2]]
-                                    tmp.reverse()
-                                    s[x2_ind[0]][x2_ind[1]][x2_ind[2]:y2_ind[2]] = tmp
-                                result[x1, x2, y1, y2] = s
-                        else:
-                            if len(x2_ind) == 2:
-                                tmp1 = s[x2_ind[0]][x2_ind[1]:]
-                            else:
-                                tmp1 = s[x2_ind[0]][x2_ind[1]][x2_ind[2]:]
-
-                            if len(y2_ind) == 2:
-                                tmp2 = s[y2_ind[0]][y2_ind[1]:]
-                                s[y2_ind[0]][y2_ind[1]:] = tmp1
-                            else:
-                                tmp2 = s[y2_ind[0]][y2_ind[1]][y2_ind[2]:]
-                                s[y2_ind[0]][y2_ind[1]][y2_ind[2]:] = tmp1
-
-                            if len(x2_ind) == 2:
-                                s[x2_ind[0]][x2_ind[1]:] = tmp2
-                            else:
-                                s[x2_ind[0]][x2_ind[1]][x2_ind[2]:] = tmp2
+                        s = self.two_opt(solution, x1, x2, y1, y2)
+                        if s is not None:
                             result[x1, x2, y1, y2] = s
-
         return result
 
     def move01(self, solution):
@@ -400,36 +340,185 @@ class TSUtils:
                     if i < self.num_drone:
                         s[i].insert(j, [x])
                     else:
-                        s[i].insert(j, x)
+                        if len(s[i]) == 0:
+                            s[i].insert(j, x)
+                        else:
+                            continue
 
-                    result[x, i, j] = s
+                    if s != solution:
+                        result[x, i, j] = s
 
         return result
 
     # POST OPTIMIZATION
-    def intra_relocate(self, solution):
-        pass
+    def relocate(self, solution, x, y, route_type="all"):
+        C1 = self.inp["C1"]
 
-    def intra_exchange(self, solution):
-        pass
+        if x == y:
+            return None
 
-    def intra_2_opt(self, solution):
-        pass
+        if x in C1 and self.is_in_drone_route(solution, y):
+            return None
 
-    def intra_or_opt(self, solution):
-        pass
+        if not self.is_in_same_trip(solution, x, y) and route_type == "intra":
+            return None
 
-    def inter_relocate(self, solution):
-        pass
+        if self.is_in_same_trip(solution, x, y) and route_type == "inter":
+            return None
 
-    def inter_exchange(self, solution):
-        pass
+        s = copy.deepcopy(solution)
 
-    def inter_2_opt(self, solution):
-        pass
+        self.delete_by_val(s, x)
+        self.insert_after(s, x, y)
+        self.refactor(s)
 
-    def inter_or_opt(self, solution):
-        pass
+        if s == solution:
+            return None
+
+        return s
+
+    def exchange(self, solution, x, y, route_type="all"):
+        C1 = self.inp["C1"]
+
+        if x == y:
+            return None
+
+        if x in C1 and self.is_in_drone_route(solution, y):
+            return None
+
+        if y in C1 and self.is_in_drone_route(solution, x):
+            return None
+
+        if not self.is_in_same_trip(solution, x, y) and route_type == "intra":
+            return None
+
+        if self.is_in_same_trip(solution, x, y) and route_type == "inter":
+            return None
+
+        s = copy.deepcopy(solution)
+
+        self.swap(s, x, y)
+        if s == solution:
+            return None
+
+        return s
+
+    def two_opt(self, solution, x1, x2, y1, y2, route_type="all"):
+        if not self.is_adj(solution, x1, x2):
+            return None
+        if y1 == x1 or y1 == x2:
+            return None
+        if not self.is_adj(solution, y1, y2):
+            return None
+
+        C1 = self.inp["C1"]
+
+        if x1 in C1 and self.is_in_drone_route(solution, y2):
+            return None
+
+        if y1 in C1 and self.is_in_drone_route(solution, x2):
+            return None
+
+        s = copy.deepcopy(solution)
+
+        x1_ind = self.find_index(s, x1)
+        x2_ind = self.find_index(s, x2)
+        y1_ind = self.find_index(s, y1)
+        y2_ind = self.find_index(s, y2)
+
+        if self.is_in_same_trip(s, x1, y1) and route_type != "inter":
+            if x1_ind < y1_ind:
+                if len(x1_ind) == 2:
+                    tmp = s[x2_ind[0]][x2_ind[1]:y2_ind[1]]
+                    tmp.reverse()
+                    s[x2_ind[0]][x2_ind[1]:y2_ind[1]] = tmp
+                else:
+                    tmp = s[x2_ind[0]][x2_ind[1]][x2_ind[2]:y2_ind[2]]
+                    tmp.reverse()
+                    s[x2_ind[0]][x2_ind[1]][x2_ind[2]:y2_ind[2]] = tmp
+
+                return s
+        if not self.is_in_same_trip(s, x1, y1) and route_type != "intra":
+            if len(x2_ind) == 2:
+                tmp1 = s[x2_ind[0]][x2_ind[1]:]
+            else:
+                tmp1 = s[x2_ind[0]][x2_ind[1]][x2_ind[2]:]
+
+            if len(y2_ind) == 2:
+                tmp2 = s[y2_ind[0]][y2_ind[1]:]
+                s[y2_ind[0]][y2_ind[1]:] = tmp1
+            else:
+                tmp2 = s[y2_ind[0]][y2_ind[1]][y2_ind[2]:]
+                s[y2_ind[0]][y2_ind[1]][y2_ind[2]:] = tmp1
+
+            if len(x2_ind) == 2:
+                s[x2_ind[0]][x2_ind[1]:] = tmp2
+            else:
+                s[x2_ind[0]][x2_ind[1]][x2_ind[2]:] = tmp2
+            return s
+
+        return None
+
+    def or_opt(self, solution, x1, x2, y, route_type="all"):
+        if not self.is_adj(solution, x1, x2):
+            return None
+
+        if x1 == y or x2 == y:
+            return None
+
+        if not self.is_in_same_trip(solution, x1, y) and route_type == "intra":
+            return None
+
+        if self.is_in_same_trip(solution, x1, y) and route_type == "inter":
+            return None
+
+        C1 = self.inp["C1"]
+
+        if x1 in C1 and self.is_in_drone_route(solution, y):
+            return None
+
+        s = copy.deepcopy(solution)
+
+        self.delete_by_val(s, x1)
+        self.delete_by_val(s, x2)
+        self.insert_after(s, x1, y)
+        self.insert_after(s, x2, x1)
+        self.refactor(s)
+
+        return s
+
+    def inter_cross_exchange(self, solution, x1, x2, y1, y2, min_dis=1):
+        if self.dis(solution, x1, x2) < min_dis or self.dis(solution, y1, y2) < min_dis:
+            return None
+
+        if self.is_in_same_trip(solution, x1, x2) and self.is_in_same_trip(solution, x1, y1):
+            return None
+
+        s = copy.deepcopy(solution)
+
+        x1_ind = self.find_index(s, x1)
+        x2_ind = self.find_index(s, x2)
+        y1_ind = self.find_index(s, y1)
+        y2_ind = self.find_index(s, y2)
+
+        if len(x1_ind) == 2:
+            tmp1 = s[x1_ind[0]][x1_ind[1] + 1:x2_ind[1]]
+        else:
+            tmp1 = s[x1_ind[0]][x1_ind[1]][x1_ind[2] + 1:x2_ind[2]]
+
+        if len(y1_ind) == 2:
+            tmp2 = s[y1_ind[0]][y1_ind[1] + 1:y2_ind[1]]
+            s[y1_ind[0]][y1_ind[1] + 1:y2_ind[1]] = tmp1[:]
+        else:
+            tmp2 = s[y1_ind[0]][y1_ind[1]][y1_ind[2] + 1:y2_ind[2]]
+            s[y1_ind[0]][y1_ind[1]][y1_ind[2] + 1:y2_ind[2]] = tmp1[:]
+
+        if len(x1_ind) == 2:
+            s[x1_ind[0]][x1_ind[1] + 1:x2_ind[1]] = tmp2[:]
+        else:
+            s[x1_ind[0]][x1_ind[1]][x1_ind[2] + 1:x2_ind[2]] = tmp2[:]
+
+        return s
 
     def ejection(self, solution):
         pass
