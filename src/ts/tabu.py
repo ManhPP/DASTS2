@@ -177,7 +177,7 @@ class TabuSearch:
         else:
             self.penalty_params["alpha2"] = alpha2 / (1 + beta)
 
-    def run(self, verbose=True):
+    def run_tabu(self, verbose=True):
         """
         Conducts tabu search
 
@@ -238,7 +238,7 @@ class TabuSearch:
                                          "ext": str(ext),
                                          "t": "not in tabu"}
                     break
-        print("TERMINATING - REACHED MAXIMUM STEPS")
+        print("TERMINATING TABU - REACHED MAXIMUM STEPS")
         if verbose:
             print(self)
         print(self.initial_state)
@@ -246,3 +246,12 @@ class TabuSearch:
         with open('result.json', 'w') as json_file:
             json.dump(r, json_file, indent=2)
         return self.best, self._score(self.best)
+
+    def run_post_optimization(self, verbose=True):
+        self.utils.run_ejection(solution=self.best)
+        self.utils.run_inter_route(solution=self.best)
+        self.utils.run_intra_route(solution=self.best)
+
+    def run(self, verbose=True):
+        self.run_tabu(verbose)
+        self.run_post_optimization(verbose)

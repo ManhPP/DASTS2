@@ -5,8 +5,8 @@ params:
   L_d: 120
   staff_velocity: 0.58
   drone_velocity: 0.83
-  num_staff: 1
-  num_drone: 1
+  num_staff: 2
+  num_drone: 2
 
 data_path: data/old/12.20.4.txt
 
@@ -18,6 +18,9 @@ tabu_params:
   alpha1: 1
   alpha2: 1
   beta: 0.5
+
+ejection:
+  max_level: 2
 
 solver:
   solver: GUROBI

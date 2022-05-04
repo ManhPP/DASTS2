@@ -1,4 +1,5 @@
 import copy
+import random
 
 from src.utils import cal
 
@@ -19,7 +20,7 @@ class TSUtils:
                        "move20": self.move20, "move21": self.move21,
                        "move2opt": self.move2opt, "move01": self.move01}
 
-    def get_score(self, solution, penalty):
+    def get_score(self, solution, penalty=None):
         """
 
         :param solution:
@@ -60,6 +61,21 @@ class TSUtils:
                     return i, j
 
         return None
+
+    def get_predecessor(self, solution, val):
+        index = self.find_index(solution, val)
+        if len(index) == 2:
+            return solution[index[0]][index[1] - 1] if index[1] > 0 else 0
+        else:
+            return solution[index[0]][index[1]][index[2] - 1] if index[2] > 0 else 0
+
+    def get_successor(self, solution, val):
+        index = self.find_index(solution, val)
+        if len(index) == 2:
+            return solution[index[0]][index[1] + 1] if index[1] < len(solution[index[0]]) - 1 else self.num_cus + 1
+        else:
+            return solution[index[0]][index[1]][index[2] + 1] if index[2] < len(
+                solution[index[0]][index[1]]) - 1 else self.num_cus + 1
 
     def delete_by_ind(self, solution, index):
         """
@@ -107,6 +123,41 @@ class TSUtils:
         else:
             if index[0] < self.num_drone:
                 solution[index[0]][index[1]].insert(index[2] + 1, val1)
+
+    def insert_before(self, solution, val1, val2):
+        """
+
+        :param solution:
+        :param val1:
+        :param val2:
+        :return:
+        """
+        index = self.find_index(solution, val2)
+
+        if len(index) == 2:
+            if index[0] >= self.num_drone:
+                solution[index[0]].insert(index[1], val1)
+
+        else:
+            if index[0] < self.num_drone:
+                solution[index[0]][index[1]].insert(index[2], val1)
+
+    def insert_by_index(self, solution, val, index):
+        """
+
+        :param solution:
+        :param val:
+        :param index:
+        :return:
+        """
+
+        if len(index) == 2:
+            if index[0] >= self.num_drone:
+                solution[index[0]].insert(index[1], val)
+
+        else:
+            if index[0] < self.num_drone:
+                solution[index[0]][index[1]].insert(index[2], val)
 
     def is_in_drone_route(self, solution, val):
         """
@@ -520,8 +571,147 @@ class TSUtils:
 
         return s
 
-    def ejection(self, solution):
-        pass
+    def run_ejection(self, solution):
+        max_level = self.config.ejection.max_level
+        best_gain = float("-inf")
+        best_shift_sequence = []
+        current_gain = 0
+        current_level = 0
+        shift_sequence = []
+
+        def ejection(x, gain, level):
+            nonlocal best_gain, max_level, solution, shift_sequence, best_shift_sequence
+
+            x_ind = self.find_index(solution, x)
+
+            g = 0
+            predecessor = self.get_predecessor(solution, x)
+            successor = self.get_successor(solution, x)
+
+            if len(x_ind) == 2:
+                dis = self.inp['tau']
+            else:
+                dis = self.inp['tau_a']
+
+            g += dis[predecessor, x] + dis[x, successor] - dis[predecessor, successor]
+            self.delete_by_val(solution, x)
+            gain += g
+
+            for _cus in range(1, self.num_cus + 1):
+                if _cus == x:
+                    continue
+                _cus_ind = self.find_index(solution, _cus)
+
+                if len(_cus_ind) == 2:
+                    if _cus_ind[0] == x_ind[0]:
+                        continue
+                    dis = self.inp['tau']
+                    trip = solution[_cus_ind[0]]
+                else:
+                    if _cus_ind[0] == x_ind[0] and _cus_ind[1] == x_ind[1]:
+                        continue
+                    dis = self.inp['tau_a']
+                    trip = solution[_cus_ind[0]][_cus_ind[1]]
+
+                _cus_predecessor = self.get_predecessor(solution, _cus)
+
+                d = dis[_cus_predecessor, x] + dis[x, _cus] - dis[_cus_predecessor, _cus]
+
+                if gain - d > best_gain:
+                    self.insert_before(solution, x, _cus)
+                    gain -= d
+                    shift_sequence.append((x, self.find_index(solution, x)))
+                    level += 1
+
+                    _, dz, cz = self.get_score(solution)
+
+                    if dz == 0 and cz == 0:
+                        best_shift_sequence = shift_sequence[:]
+                        print(best_shift_sequence)
+                        best_gain = gain
+                        print(best_gain)
+                    elif level + 1 <= max_level:
+                        for yr in trip:
+                            s = copy.deepcopy(solution)
+                            self.delete_by_val(s, yr)
+                            _, dz1, cz1 = self.get_score(s)
+                            if dz1 == 0 and cz1 == 0:
+                                ejection(yr, gain, level)
+
+                    self.delete_by_val(solution, x)
+                    gain += d
+                    shift_sequence.pop()
+                    level -= 1
+
+                _cus_successor = self.get_successor(solution, _cus)
+                if _cus_successor == self.num_cus + 1:
+                    d = dis[_cus, x] + dis[x, _cus_successor] - dis[_cus, _cus_predecessor]
+
+                    if gain - d > best_gain:
+                        self.insert_after(solution, x, _cus)
+                        gain -= d
+                        shift_sequence.append((x, self.find_index(solution, x)))
+                        level += 1
+
+                        _, dz, cz = self.get_score(solution)
+
+                        if dz == 0 and cz == 0:
+                            best_shift_sequence = shift_sequence[:]
+                            print(best_shift_sequence)
+                            best_gain = gain
+                            print(best_gain)
+                        elif level + 1 <= max_level:
+                            for yr in trip:
+                                s = copy.deepcopy(solution)
+                                self.delete_by_val(s, yr)
+                                _, dz1, cz1 = self.get_score(s)
+                                if dz1 == 0 and cz1 == 0:
+                                    ejection(yr, gain, level)
+
+                        self.delete_by_val(solution, x)
+                        gain += d
+                        shift_sequence.pop()
+                        level -= 1
+
+            if len(x_ind) == 2:
+                if x_ind[0] >= self.num_drone:
+                    solution[x_ind[0]].insert(x_ind[1], x)
+
+            if len(x_ind) == 3:
+                if x_ind[0] < self.num_drone:
+                    solution[x_ind[0]][x_ind[1]].insert(x_ind[2], x)
+
+        for cus in range(1, self.num_cus + 1):
+            print(cus)
+            ejection(cus, current_gain, current_level)
+
+        print(best_shift_sequence)
+        print(best_gain)
+
+        for index, x in best_shift_sequence:
+            self.delete_by_val(solution, x)
+            self.insert_by_index(solution, x, index)
+
+        return solution
+
+    def run_inter_route(self, solution):
+        inter = [self.relocate, self.exchange, self.two_opt, self.or_opt,
+                 self.inter_cross_exchange]
+
+        while True:
+            random.shuffle(inter)
+
+            for op in inter:
+                pass
+
+    def run_intra_route(self, solution):
+        inter = [self.relocate, self.exchange, self.two_opt, self.or_opt]
+
+        while True:
+            random.shuffle(inter)
+
+            for op in inter:
+                pass
 
 
 if __name__ == '__main__':
