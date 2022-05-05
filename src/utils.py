@@ -1,9 +1,12 @@
 import os
 
 
-def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=None, print_log=False):
+def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=None,
+        drone_trip_cal=None, staff_trip_cal=None, print_log=False):
     """
 
+    :param staff_trip_cal:
+    :param drone_trip_cal:
     :param penalty:
     :param staff_path_list:
     :param drone_path_list:
@@ -28,6 +31,9 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=N
     cz = 0
 
     for i, staff in enumerate(staff_path_list):
+        if staff_trip_cal is not None and i not in staff_trip_cal:
+            continue
+
         if len(staff) == 0:
             continue
         tmp = tau[0, staff[0]]
@@ -38,6 +44,8 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=N
         A[i] = tmp + tau[staff[-1], num_cus + 1]
 
     for i, drone in enumerate(drone_path_list):
+        if drone_trip_cal is not None and i not in drone_trip_cal:
+            continue
         tmp = 0
         for j, trip in enumerate(drone):
             if len(trip) == 0:
@@ -61,11 +69,17 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=N
         c = max(max(A.values()), max(B.values()))
 
     for i, staff in enumerate(staff_path_list):
+        if staff_trip_cal is not None and i not in staff_trip_cal:
+            continue
+
         if len(staff) == 0:
             continue
         for j in staff:
             cz += max(0, A[i] - S[j] - config.params["L_w"])
     for i, drone in enumerate(drone_path_list):
+        if drone_trip_cal is not None and i not in drone_trip_cal:
+            continue
+
         for j, trip in enumerate(drone):
             if len(trip) == 0:
                 continue

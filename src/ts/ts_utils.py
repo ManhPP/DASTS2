@@ -31,6 +31,22 @@ class TSUtils:
                    solution[:self.config.params["num_drone"]], self.inp['tau'],
                    self.inp['tau_a'], self.inp['num_cus'], self.config, penalty)
 
+    def get_score_some_trip(self, solution, trip, penalty=None):
+        """
+
+        :param trip:
+        :param solution:
+        :param penalty:
+        :return:
+        """
+
+        drone_trip_cal = [i for i in trip if i < self.num_drone]
+        staff_trip_cal = [i - self.num_drone for i in trip if i >= self.num_drone]
+
+        return cal(solution[self.config.params["num_drone"]:],
+                   solution[:self.config.params["num_drone"]], self.inp['tau'],
+                   self.inp['tau_a'], self.inp['num_cus'], self.config, penalty, drone_trip_cal, staff_trip_cal)
+
     def get_all_neighbors(self, solution, act):
         """
 
@@ -582,9 +598,14 @@ class TSUtils:
         def ejection(x, gain, level):
             nonlocal best_gain, max_level, solution, shift_sequence, best_shift_sequence
 
+            scores = []
+            for i in range(len(solution)):
+                scores.append(self.get_score_some_trip(solution, [i])[0])
+
+            f_score = max(scores)
+
             x_ind = self.find_index(solution, x)
 
-            g = 0
             predecessor = self.get_predecessor(solution, x)
             successor = self.get_successor(solution, x)
 
@@ -593,7 +614,10 @@ class TSUtils:
             else:
                 dis = self.inp['tau_a']
 
-            g += dis[predecessor, x] + dis[x, successor] - dis[predecessor, successor]
+            scores[x_ind[0]] -= dis[predecessor, x] + dis[x, successor] - dis[predecessor, successor]
+            c_score = max(scores)
+            g = f_score - c_score
+
             self.delete_by_val(solution, x)
             gain += g
 
@@ -615,7 +639,9 @@ class TSUtils:
 
                 _cus_predecessor = self.get_predecessor(solution, _cus)
 
-                d = dis[_cus_predecessor, x] + dis[x, _cus] - dis[_cus_predecessor, _cus]
+                tmp_score = scores[:]
+                tmp_score[_cus_ind[0]] += dis[_cus_predecessor, x] + dis[x, _cus] - dis[_cus_predecessor, _cus]
+                d = max(tmp_score) - c_score
 
                 if gain - d > best_gain:
                     self.insert_before(solution, x, _cus)
@@ -623,7 +649,7 @@ class TSUtils:
                     shift_sequence.append((x, self.find_index(solution, x)))
                     level += 1
 
-                    _, dz, cz = self.get_score(solution)
+                    _, dz, cz = self.get_score_some_trip(solution, [_cus_ind[0]])
 
                     if dz == 0 and cz == 0:
                         best_shift_sequence = shift_sequence[:]
@@ -653,7 +679,7 @@ class TSUtils:
                         shift_sequence.append((x, self.find_index(solution, x)))
                         level += 1
 
-                        _, dz, cz = self.get_score(solution)
+                        _, dz, cz = self.get_score_some_trip(solution, [_cus_ind[0]])
 
                         if dz == 0 and cz == 0:
                             best_shift_sequence = shift_sequence[:]
@@ -688,9 +714,9 @@ class TSUtils:
         print(best_shift_sequence)
         print(best_gain)
 
-        for index, x in best_shift_sequence:
-            self.delete_by_val(solution, x)
-            self.insert_by_index(solution, x, index)
+        for index, cus in best_shift_sequence:
+            self.delete_by_val(solution, cus)
+            self.insert_by_index(solution, cus, index)
 
         return solution
 
