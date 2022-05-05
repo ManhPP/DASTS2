@@ -22,8 +22,8 @@ if __name__ == '__main__':
     if config.run_type == "ts":
         inp = load_input(config, config.data_path)
         ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size, config.tabu_params.max_iter)
-        # ts.run()
-        ts.utils.run_ejection([[[5, 7, 11]], [[1, 8, 6, 12, 3, 9]], [4], [10, 2]])
+        ts.run()
+        # ts.utils.run_ejection([[[5, 10]], [[11, 2, 9, 8, 4, 1], [12, 3, 6, 7]], [], []])
         # print(ts.utils.get_score([[[5, 7, 11]], [[1, 8, 6, 12, 3, 9]], [4], [10, 2]]))
         # print(ts.utils.get_score([[[5, 7, 11]], [[8, 6, 12, 3, 9]], [1, 4], [10, 2]]))
         print("done!")

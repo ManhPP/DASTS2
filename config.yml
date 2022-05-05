@@ -14,7 +14,7 @@ result_folder: result
 
 tabu_params:
   tabu_size: 5
-  max_iter: 200
+  max_iter: 10
   alpha1: 1
   alpha2: 1
   beta: 0.5

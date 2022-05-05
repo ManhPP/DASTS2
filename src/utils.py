@@ -61,7 +61,9 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=N
         if tmp > 0:
             B[i] = tmp
 
-    if len(B) == 0:
+    if len(A) == len(B) == 0:
+        c = 0
+    elif len(B) == 0:
         c = max(A.values())
     elif len(A) == 0:
         c = max(B.values())

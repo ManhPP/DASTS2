@@ -108,6 +108,8 @@ class TSUtils:
             if index[0] < self.num_drone:
                 solution[index[0]][index[1]].pop(index[2])
 
+        self.refactor(solution)
+
     def delete_by_val(self, solution, val):
         """
 
@@ -173,7 +175,10 @@ class TSUtils:
 
         else:
             if index[0] < self.num_drone:
-                solution[index[0]][index[1]].insert(index[2], val)
+                if len(solution[index[0]]) == index[1]:
+                    solution[index[0]].append([val])
+                else:
+                    solution[index[0]][index[1]].insert(index[2], val)
 
     def is_in_drone_route(self, solution, val):
         """
@@ -338,7 +343,7 @@ class TSUtils:
         for x1 in range(1, self.num_cus + 1):
             for x2 in range(1, self.num_cus + 1):
                 for y in range(1, self.num_cus + 1):
-                    s = self.or_opt(solution, x1, x2, y, route_type)
+                    s = self.or_opt(solution, x1, x2, y, compare_operator=self.eq, route_type=route_type)
                     if s is not None:
                         result[x1, x2, y] = s
 
@@ -386,12 +391,10 @@ class TSUtils:
         """
         result = {}
 
-        num_cus = self.inp["num_cus"]
-
-        for x1 in range(1, num_cus + 1):
-            for x2 in range(1, num_cus + 1):
-                for y1 in range(1, num_cus + 1):
-                    for y2 in range(1, num_cus + 1):
+        for x1 in range(1, self.num_cus + 1):
+            for x2 in range(1, self.num_cus + 1):
+                for y1 in range(1, self.num_cus + 1):
+                    for y2 in range(1, self.num_cus + 1):
                         s = self.two_opt(solution, x1, x2, y1, y2, route_type)
                         if s is not None:
                             result[x1, x2, y1, y2] = s
@@ -406,10 +409,9 @@ class TSUtils:
 
         result = {}
 
-        num_cus = self.inp["num_cus"]
         C1 = self.inp["C1"]
 
-        for x in range(1, num_cus + 1):
+        for x in range(1, self.num_cus + 1):
 
             x_ind = self.find_index(solution, x)
 
@@ -545,8 +547,15 @@ class TSUtils:
 
         return None
 
-    def or_opt(self, solution, x1, x2, y, b_dis=1, compare_operator=ge, route_type="all"):
-        if not compare_operator(self.dis(solution, x1, x2), b_dis):
+    def or_opt(self, solution, x1, x2, y, b_dis=1, compare_operator=None, route_type="all"):
+        if compare_operator is None:
+            compare_operator = self.ge
+
+        dis = self.dis(solution, x1, x2)
+        if dis == float('inf'):
+            return None
+
+        if not compare_operator(dis, b_dis):
             return None
 
         if not self.is_adj(solution, x1, x2):
@@ -576,12 +585,18 @@ class TSUtils:
 
         return s
 
-    def inter_cross_exchange(self, solution, x1, x2, y1, y2, b_dis=1, compare_operator=ge):
-        if not compare_operator(self.dis(solution, x1, x2), b_dis) \
-                or not compare_operator(self.dis(solution, y1, y2), b_dis):
+    def inter_cross_exchange(self, solution, x1, x2, y1, y2, b_dis=1, compare_operator=None):
+        if compare_operator is None:
+            compare_operator = self.ge
+        dis1 = self.dis(solution, x1, x2)
+        dis2 = self.dis(solution, y1, y2)
+        if dis1 == float('inf') or dis2 == float('inf'):
             return None
 
-        if self.is_in_same_trip(solution, x1, x2) and self.is_in_same_trip(solution, x1, y1):
+        if not compare_operator(dis1, b_dis) or not compare_operator(dis2, b_dis):
+            return None
+
+        if self.is_in_same_trip(solution, x1, y1):
             return None
 
         s = copy.deepcopy(solution)
@@ -722,13 +737,7 @@ class TSUtils:
                         shift_sequence.pop()
                         level -= 1
 
-            if len(x_ind) == 2:
-                if x_ind[0] >= self.num_drone:
-                    solution[x_ind[0]].insert(x_ind[1], x)
-
-            if len(x_ind) == 3:
-                if x_ind[0] < self.num_drone:
-                    solution[x_ind[0]][x_ind[1]].insert(x_ind[2], x)
+            self.insert_by_index(solution, x, x_ind)
 
         for cus in range(1, self.num_cus + 1):
             print(cus)
@@ -737,30 +746,112 @@ class TSUtils:
         print(best_shift_sequence)
         print(best_gain)
 
-        for index, cus in best_shift_sequence:
+        for cus, index in best_shift_sequence:
             self.delete_by_val(solution, cus)
             self.insert_by_index(solution, cus, index)
 
         return solution
 
     def run_inter_route(self, solution):
-        inter = [self.move10, self.move11, self.move2opt, self.move20,
+        inter = [self.relocate, self.exchange, self.two_opt, self.or_opt,
                  self.inter_cross_exchange]
+        route_type = "inter"
 
         while True:
             random.shuffle(inter)
-
+            has_improve = False
             for op in inter:
-                pass
+                if op == self.relocate or op == self.exchange:
+                    for x in range(1, self.num_cus + 1):
+                        for y in range(1, self.num_cus + 1):
+                            s = op(solution, x, y, route_type)
+                            if s is not None and self.get_score(s)[0] < self.get_score(solution)[0]:
+                                solution = s
+                                has_improve = True
+
+                elif op == self.two_opt:
+                    for x1 in range(1, self.num_cus + 1):
+                        for x2 in range(1, self.num_cus + 1):
+                            for y1 in range(1, self.num_cus + 1):
+                                for y2 in range(1, self.num_cus + 1):
+                                    s = self.two_opt(solution, x1, x2, y1, y2, route_type)
+                                    if s is not None and self.get_score(s)[0] < self.get_score(solution)[0]:
+                                        solution = s
+                                        has_improve = True
+                elif op == self.or_opt:
+                    for x1 in range(1, self.num_cus + 1):
+                        for x2 in range(1, self.num_cus + 1):
+                            for y in range(1, self.num_cus + 1):
+                                s = self.or_opt(solution, x1, x2, y, route_type=route_type)
+                                if s is not None and self.get_score(s)[0] < self.get_score(solution)[0]:
+                                    solution = s
+                                    has_improve = True
+                else:
+                    for x1 in range(1, self.num_cus + 1):
+                        for x2 in range(1, self.num_cus + 1):
+                            for y1 in range(1, self.num_cus + 1):
+                                for y2 in range(1, self.num_cus + 1):
+                                    s = self.inter_cross_exchange(solution, x1, x2, y1, y2)
+                                    if s is not None and self.get_score(s)[0] < self.get_score(solution)[0]:
+                                        solution = s
+                                        has_improve = True
+
+            if not has_improve:
+                break
 
     def run_intra_route(self, solution):
-        intra = [self.move10, self.move11, self.move2opt, self.move20]
+        intra = [self.relocate, self.exchange, self.two_opt, self.or_opt]
+        route_type = "intra"
+
+        improve_set = set()
 
         while True:
             random.shuffle(intra)
+            has_improve = False
+            new_improve_set = set()
 
             for op in intra:
-                pass
+                if op == self.relocate or op == self.exchange:
+                    for x in range(1, self.num_cus + 1):
+                        x_ind = self.find_index(solution, x)
+                        if x_ind[:-1] in improve_set:
+                            continue
+                        for y in range(1, self.num_cus + 1):
+                            s = op(solution, x, y, route_type)
+                            if s is not None and self.get_score(s)[0] < self.get_score(solution)[0]:
+                                solution = s
+                                has_improve = True
+                                new_improve_set.add(x_ind[:-1])
+
+                elif op == self.two_opt:
+                    for x1 in range(1, self.num_cus + 1):
+                        x_ind = self.find_index(solution, x1)
+                        if x_ind[:-1] in improve_set:
+                            continue
+                        for x2 in range(1, self.num_cus + 1):
+                            for y1 in range(1, self.num_cus + 1):
+                                for y2 in range(1, self.num_cus + 1):
+                                    s = self.two_opt(solution, x1, x2, y1, y2, route_type)
+                                    if s is not None and self.get_score(s)[0] < self.get_score(solution)[0]:
+                                        solution = s
+                                        has_improve = True
+                                        new_improve_set.add(x_ind[:-1])
+                elif op == self.or_opt:
+                    for x1 in range(1, self.num_cus + 1):
+                        x_ind = self.find_index(solution, x1)
+                        if x_ind[:-1] in improve_set:
+                            continue
+                        for x2 in range(1, self.num_cus + 1):
+                            for y in range(1, self.num_cus + 1):
+                                s = self.or_opt(solution, x1, x2, y, route_type=route_type)
+                                if s is not None and self.get_score(s)[0] < self.get_score(solution)[0]:
+                                    solution = s
+                                    has_improve = True
+                                    new_improve_set.add(x_ind[:-1])
+
+            if not has_improve:
+                break
+            improve_set = new_improve_set
 
 
 if __name__ == '__main__':
