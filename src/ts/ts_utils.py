@@ -270,56 +270,75 @@ class TSUtils:
         else:
             return x_ind[0] == y_ind[0] and x_ind[1] == y_ind[1]
 
+    @staticmethod
+    def eq(val1, val2):
+        return val1 == val2
+
+    @staticmethod
+    def gt(val1, val2):
+        return val1 > val2
+
+    @staticmethod
+    def lt(val1, val2):
+        return val1 < val2
+
+    @staticmethod
+    def ge(val1, val2):
+        return val1 >= val2
+
+    @staticmethod
+    def le(val1, val2):
+        return val1 <= val2
+
     # ACTION
 
-    def move10(self, solution):
+    def move10(self, solution, route_type="all"):
         """
 
+        :param route_type:
         :param solution:
         :return:
         """
         result = {}
-        num_cus = self.inp["num_cus"]
 
-        for x in range(1, num_cus + 1):
+        for x in range(1, self.num_cus + 1):
 
-            for y in range(1, num_cus + 1):
-                s = self.relocate(solution, x, y)
+            for y in range(1, self.num_cus + 1):
+                s = self.relocate(solution, x, y, route_type)
                 if s is not None:
                     result[x, y] = s
 
         return result
 
-    def move11(self, solution):
+    def move11(self, solution, route_type="all"):
         """
 
+        :param route_type:
         :param solution:
         :return:
         """
         result = {}
 
-        num_cus = self.inp["num_cus"]
-
-        for x in range(1, num_cus + 1):
-            for y in range(1, num_cus + 1):
-                s = self.exchange(solution, x, y)
+        for x in range(1, self.num_cus + 1):
+            for y in range(1, self.num_cus + 1):
+                s = self.exchange(solution, x, y, route_type)
                 if s is not None:
                     result[x, y] = s
         return result
 
-    def move20(self, solution):
+    def move20(self, solution, route_type="all"):
         """
 
+        :param route_type:
         :param solution:
         :return:
         """
         result = {}
-        num_cus = self.inp["num_cus"]
 
-        for x1 in range(1, num_cus + 1):
-            for x2 in range(1, num_cus + 1):
-                for y in range(1, num_cus + 1):
-                    s = self.or_opt(solution, x1, x2, y)
+        for x1 in range(1, self.num_cus + 1):
+            for x2 in range(1, self.num_cus + 1):
+                for y in range(1, self.num_cus + 1):
+                    s = self.or_opt(solution, x1, x2, y, route_type)
                     if s is not None:
                         result[x1, x2, y] = s
 
@@ -333,14 +352,13 @@ class TSUtils:
         """
         result = {}
 
-        num_cus = self.inp["num_cus"]
         C1 = self.inp["C1"]
 
-        for x1 in range(1, num_cus + 1):
-            for x2 in range(1, num_cus + 1):
+        for x1 in range(1, self.num_cus + 1):
+            for x2 in range(1, self.num_cus + 1):
                 if not self.is_adj(solution, x1, x2):
                     continue
-                for y in range(1, num_cus + 1):
+                for y in range(1, self.num_cus + 1):
                     if x1 == y or x2 == y:
                         continue
 
@@ -359,9 +377,10 @@ class TSUtils:
                     result[x1, x2, y] = s
         return result
 
-    def move2opt(self, solution):
+    def move2opt(self, solution, route_type="all"):
         """
 
+        :param route_type:
         :param solution:
         :return:
         """
@@ -373,7 +392,7 @@ class TSUtils:
             for x2 in range(1, num_cus + 1):
                 for y1 in range(1, num_cus + 1):
                     for y2 in range(1, num_cus + 1):
-                        s = self.two_opt(solution, x1, x2, y1, y2)
+                        s = self.two_opt(solution, x1, x2, y1, y2, route_type)
                         if s is not None:
                             result[x1, x2, y1, y2] = s
         return result
@@ -526,7 +545,10 @@ class TSUtils:
 
         return None
 
-    def or_opt(self, solution, x1, x2, y, route_type="all"):
+    def or_opt(self, solution, x1, x2, y, b_dis=1, compare_operator=ge, route_type="all"):
+        if not compare_operator(self.dis(solution, x1, x2), b_dis):
+            return None
+
         if not self.is_adj(solution, x1, x2):
             return None
 
@@ -554,8 +576,9 @@ class TSUtils:
 
         return s
 
-    def inter_cross_exchange(self, solution, x1, x2, y1, y2, min_dis=1):
-        if self.dis(solution, x1, x2) < min_dis or self.dis(solution, y1, y2) < min_dis:
+    def inter_cross_exchange(self, solution, x1, x2, y1, y2, b_dis=1, compare_operator=ge):
+        if not compare_operator(self.dis(solution, x1, x2), b_dis) \
+                or not compare_operator(self.dis(solution, y1, y2), b_dis):
             return None
 
         if self.is_in_same_trip(solution, x1, x2) and self.is_in_same_trip(solution, x1, y1):
@@ -721,7 +744,7 @@ class TSUtils:
         return solution
 
     def run_inter_route(self, solution):
-        inter = [self.relocate, self.exchange, self.two_opt, self.or_opt,
+        inter = [self.move10, self.move11, self.move2opt, self.move20,
                  self.inter_cross_exchange]
 
         while True:
@@ -731,12 +754,12 @@ class TSUtils:
                 pass
 
     def run_intra_route(self, solution):
-        inter = [self.relocate, self.exchange, self.two_opt, self.or_opt]
+        intra = [self.move10, self.move11, self.move2opt, self.move20]
 
         while True:
-            random.shuffle(inter)
+            random.shuffle(intra)
 
-            for op in inter:
+            for op in intra:
                 pass
 
 
