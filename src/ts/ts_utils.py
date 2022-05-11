@@ -438,6 +438,44 @@ class TSUtils:
 
         return result
 
+    def move02(self, solution):
+        """
+
+        :param solution:
+        :return:
+        """
+
+        result = {}
+
+        C1 = self.inp["C1"]
+
+        for x in range(1, self.num_cus + 1):
+
+            x_ind = self.find_index(solution, x)
+
+            for i in range(self.num_drone + self.num_staff):
+                if i < self.num_drone and x in C1:
+                    continue
+
+                for j in range(len(solution[i]) + 1):
+                    if self.num_drone <= i == x_ind[0] and j == x_ind[1]:
+                        continue
+                    s = copy.deepcopy(solution)
+                    self.delete_by_val(s, x)
+                    self.refactor(s)
+                    if i < self.num_drone:
+                        s[i].insert(j, [x])
+                    else:
+                        if len(s[i]) == 0:
+                            s[i].insert(j, x)
+                        else:
+                            continue
+
+                    if s != solution:
+                        result[x, i, j] = s
+
+        return result
+
     # POST OPTIMIZATION
     def relocate(self, solution, x, y, route_type="all"):
         C1 = self.inp["C1"]
@@ -750,13 +788,13 @@ class TSUtils:
             self.delete_by_val(solution, cus)
             self.insert_by_index(solution, cus, index)
 
-        return solution
+        return {"best_shift_sequence": str(best_shift_sequence), "best_gain": str(best_gain)}
 
     def run_inter_route(self, solution):
         inter = [self.relocate, self.exchange, self.two_opt, self.or_opt,
                  self.inter_cross_exchange]
         route_type = "inter"
-
+        r = {}
         while True:
             random.shuffle(inter)
             has_improve = False

@@ -5,19 +5,24 @@ params:
   L_d: 120
   staff_velocity: 0.58
   drone_velocity: 0.83
-  num_staff: 2
-  num_drone: 2
+  num_staff: 1
+  num_drone: 1
 
-data_path: data/old/12.20.4.txt
+data_path: data/old/6*.txt
 
 result_folder: result
 
 tabu_params:
   tabu_size: 5
-  max_iter: 10
+  max_iter: 200
   alpha1: 1
   alpha2: 1
   beta: 0.5
+  epsilon: 1e-3
+  use_weights: True
+  action_weights: {"move10": 0.2, "move11": 0.2,
+                       "move20": 0.15, "move21": 0.2,
+                       "move2opt": 0.2, "move01": 0.05}
 
 ejection:
   max_level: 2
@@ -33,5 +38,5 @@ solver:
 
 test:
   data_path: data/old/12.20.4.txt
-  staff: [[3, 2, 10, 5, 7, 11]]
-  drone: [[[12, 4, 1], [9, 6, 8]]]
+  staff: [ [ 3, 2, 10, 5, 7, 11 ] ]
+  drone: [ [ [ 12, 4, 1 ], [ 9, 6, 8 ] ] ]

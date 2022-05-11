@@ -18,17 +18,9 @@ if __name__ == '__main__':
                         help='path of config file')
     args = parser.parse_args()
     config = OmegaConf.load(args.config)
-    config.result_folder = os.path.join(config.result_folder, datetime.now().strftime("%m%d%Y%H%M%S"))
-    if config.run_type == "ts":
-        inp = load_input(config, config.data_path)
-        ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size, config.tabu_params.max_iter)
-        ts.run()
-        # ts.utils.run_ejection([[[5, 10]], [[11, 2, 9, 8, 4, 1], [12, 3, 6, 7]], [], []])
-        # print(ts.utils.get_score([[[5, 7, 11]], [[1, 8, 6, 12, 3, 9]], [4], [10, 2]]))
-        # print(ts.utils.get_score([[[5, 7, 11]], [[8, 6, 12, 3, 9]], [1, 4], [10, 2]]))
-        print("done!")
+    config.result_folder = os.path.join(config.result_folder, config.run_type, datetime.now().strftime("%m%d%Y%H%M%S"))
 
-    elif config.run_type == "cal":
+    if config.run_type == "cal":
         inp = load_input(config, config.test.data_path)
         print(
             f"Final result: "
@@ -42,7 +34,15 @@ if __name__ == '__main__':
                 print(data_set)
                 try:
                     inp = load_input(config, data_set)
-                    if config.solver.solver == "GUROBI":
+                    if config.run_type == "ts":
+                        ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size, config.tabu_params.max_iter)
+                        ts.run()
+                        # ts.utils.run_ejection([[[5, 10]], [[11, 2, 9, 8, 4, 1], [12, 3, 6, 7]], [], []])
+                        # print(ts.utils.get_score([[[5, 7, 11]], [[1, 8, 6, 12, 3, 9]], [4], [10, 2]]))
+                        # print(ts.utils.get_score([[[5, 7, 11]], [[8, 6, 12, 3, 9]], [1, 4], [10, 2]]))
+                        print("done!")
+
+                    elif config.solver.solver == "GUROBI":
                         solve_by_gurobi(config, inp)
                     elif config.solver.solver == "CPLEX":
                         solve_by_cplex(config, inp)
