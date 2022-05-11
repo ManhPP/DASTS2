@@ -18,7 +18,7 @@ class TSUtils:
         self.num_drone = self.config.params["num_drone"]
         self.action = {"move10": self.move10, "move11": self.move11,
                        "move20": self.move20, "move21": self.move21,
-                       "move2opt": self.move2opt, "move01": self.move01}
+                       "move2opt": self.move2opt, "move01": self.move01, "move02": self.move02}
 
     def get_score(self, solution, penalty=None):
         """
@@ -119,6 +119,16 @@ class TSUtils:
         """
         if val <= self.num_cus:
             self.delete_by_ind(solution, self.find_index(solution, val))
+
+    def delete_trip(self, solution, ind):
+        r = None
+        if isinstance(ind, int) and ind < self.num_drone + self.num_staff:
+            r = solution[ind]
+            solution[ind] = []
+        elif ind[0] < self.num_drone and ind[1] < len(solution[ind[0]]):
+            r = solution[ind[0]][ind[1]]
+            solution[ind[0]].pop(ind[1])
+        return r
 
     def refactor(self, solution):
         for i in range(self.num_drone):
@@ -446,34 +456,36 @@ class TSUtils:
         """
 
         result = {}
-
         C1 = self.inp["C1"]
 
-        for x in range(1, self.num_cus + 1):
+        tmp = []
+        for i in range(self.num_drone + self.num_staff):
+            if i < self.num_drone:
+                for j in range(len(solution[i])):
+                    tmp.append((i, j))
+            else:
+                if len(solution[i]) > 0:
+                    tmp.append(i)
 
-            x_ind = self.find_index(solution, x)
-
-            for i in range(self.num_drone + self.num_staff):
-                if i < self.num_drone and x in C1:
+        for i in tmp:
+            for j in tmp:
+                if i == j:
                     continue
+                s = copy.deepcopy(solution)
+                if isinstance(j, int):
+                    t2 = solution[j]
+                else:
+                    t2 = solution[j[0]][j[1]]
 
-                for j in range(len(solution[i]) + 1):
-                    if self.num_drone <= i == x_ind[0] and j == x_ind[1]:
+                if isinstance(i, tuple):
+                    if not all(cus not in C1 for cus in t2):
                         continue
-                    s = copy.deepcopy(solution)
-                    self.delete_by_val(s, x)
-                    self.refactor(s)
-                    if i < self.num_drone:
-                        s[i].insert(j, [x])
-                    else:
-                        if len(s[i]) == 0:
-                            s[i].insert(j, x)
-                        else:
-                            continue
-
-                    if s != solution:
-                        result[x, i, j] = s
-
+                    s[i[0]][i[1]].extend(t2)
+                else:
+                    s[i].extend(t2)
+                self.delete_trip(s, j)
+                if s != solution:
+                    result[i, j] = s
         return result
 
     # POST OPTIMIZATION
