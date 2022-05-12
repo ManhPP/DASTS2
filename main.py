@@ -8,6 +8,7 @@ from omegaconf import OmegaConf
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
+from src.ts.init_solution import init
 from src.ts.tabu import TabuSearch
 from src.utils import cal
 
@@ -25,7 +26,9 @@ if __name__ == '__main__':
         print(
             f"Final result: "
             f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config, {}, True)}")
-
+    elif config.run_type == "init":
+        inp = load_input(config, config.test.data_path)
+        print(init(inp, config))
     else:
         for data_path in config.data_path.split(","):
             paths = glob.glob(data_path)
@@ -34,7 +37,7 @@ if __name__ == '__main__':
                 print(data_set)
                 try:
                     inp = load_input(config, data_set)
-                    if config.run_type == "ts":
+                    if config.run_type.startswith("ts"):
                         ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size, config.tabu_params.max_iter)
                         ts.run()
                         # ts.utils.move02([[[6, 12, 5]], [[10, 7, 11]], [2, 3, 9], [8, 1, 4]])

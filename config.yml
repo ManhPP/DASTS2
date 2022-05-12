@@ -1,12 +1,12 @@
-run_type: ts
+run_type: gurobi_1211
 
 params:
-  L_w: 60
+  L_w: 20
   L_d: 120
   staff_velocity: 0.58
   drone_velocity: 0.83
-  num_staff: 2
-  num_drone: 2
+  num_staff: 1
+  num_drone: 1
 
 data_path: data/old/12.20.4.txt
 

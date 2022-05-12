@@ -224,7 +224,7 @@ def solve_by_gurobi(config, inp):
             model.addConstr(T[d, r] <= L_d, name=f"flyTimeDrone_drone[{d}]_trip[{r}]")
 
     model.optimize()
-    model.write(config.result_folder + "/" + "model.lp")
+    model.write(config.result_folder + "/" + f"model_{inp['data_set']}.lp")
 
     if model.status == GRB.OPTIMAL:
         print('Optimal objective: %g' % model.objVal)

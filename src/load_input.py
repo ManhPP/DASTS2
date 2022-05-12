@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from scipy.spatial.distance import cdist
 
 
@@ -15,6 +16,18 @@ def load_input(config, data_set):
     result["num_cus"] = len(coordinates_matrix)
     coordinates_matrix = np.insert(coordinates_matrix, 0, np.zeros(2), 0)
     dis_matrix = cdist(coordinates_matrix, coordinates_matrix)
+
+    # p = {'x': [i for i, _ in coordinates_matrix], 'y': [i for _, i in coordinates_matrix]}
+    #
+    # n = [i for i in range(len(coordinates_matrix))]
+    #
+    # fig, ax = plt.subplots()
+    # ax.scatter(p['x'], p['y'])
+    #
+    # for i, txt in enumerate(n):
+    #     ax.annotate(txt, (p['x'][i], p['y'][i]))
+    #
+    # plt.savefig("img1.png")
 
     result["C"] = [i for i in range(1, result["num_cus"] + 1)]
     staff_velocity = config.params["staff_velocity"]

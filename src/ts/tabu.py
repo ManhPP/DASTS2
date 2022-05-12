@@ -216,8 +216,9 @@ class TabuSearch:
             while True:
 
                 if all([self.get_tabu(act, x) in tabu_list for x in neighborhood]):
-                    print("TERMINATING - NO SUITABLE NEIGHBORS")
-                    return {"tabu-sol": str(self.best), "tabu-score": str(self._score(self.best)), "tabu-log": r}
+                    # print("TERMINATING - NO SUITABLE NEIGHBORS")
+                    # return {"tabu-sol": str(self.best), "tabu-score": str(self._score(self.best)), "tabu-log": r}
+                    break
 
                 step_best_info = self._score(neighborhood_best, True)
                 best_score = self._score(self.best)
