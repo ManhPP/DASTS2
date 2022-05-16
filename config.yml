@@ -1,4 +1,4 @@
-run_type: gurobi_1211
+run_type: init
 
 params:
   L_w: 20

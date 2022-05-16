@@ -13,21 +13,10 @@ def load_input(config, data_set):
         coordinates_matrix = np.loadtxt(data_set, skiprows=2)[:, :2]
     else:
         coordinates_matrix = pd.read_csv(data_set).to_numpy()[:, 1:]
+    result["data_path"] = data_set
     result["num_cus"] = len(coordinates_matrix)
     coordinates_matrix = np.insert(coordinates_matrix, 0, np.zeros(2), 0)
     dis_matrix = cdist(coordinates_matrix, coordinates_matrix)
-
-    # p = {'x': [i for i, _ in coordinates_matrix], 'y': [i for _, i in coordinates_matrix]}
-    #
-    # n = [i for i in range(len(coordinates_matrix))]
-    #
-    # fig, ax = plt.subplots()
-    # ax.scatter(p['x'], p['y'])
-    #
-    # for i, txt in enumerate(n):
-    #     ax.annotate(txt, (p['x'][i], p['y'][i]))
-    #
-    # plt.savefig("img1.png")
 
     result["C"] = [i for i in range(1, result["num_cus"] + 1)]
     staff_velocity = config.params["staff_velocity"]
@@ -56,4 +45,15 @@ def load_input(config, data_set):
         if result["tau_a"][0, i] > config.params["L_d"]:
             result["C1"].append(i)
     result['data_set'] = os.path.splitext(os.path.basename(data_set))[0]
+
+    p = {'x': [i for i, _ in coordinates_matrix], 'y': [i for _, i in coordinates_matrix]}
+
+    n = [i for i in range(len(coordinates_matrix))]
+
+    fig, ax = plt.subplots()
+    ax.scatter(p['x'], p['y'])
+
+    for i, txt in enumerate(n):
+        ax.annotate(txt, (p['x'][i], p['y'][i]))
+    plt.savefig("img_" + result['data_set'] + ".png")
     return result

@@ -8,7 +8,7 @@ from omegaconf import OmegaConf
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
-from src.ts.init_solution import init
+from src.ts.init_solution import init_by_distance, init_by_angle
 from src.ts.tabu import TabuSearch
 from src.utils import cal
 
@@ -28,7 +28,22 @@ if __name__ == '__main__':
             f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config, {}, True)}")
     elif config.run_type == "init":
         inp = load_input(config, config.test.data_path)
-        print(init(inp, config))
+
+        for reverse in [True, False]:
+            s = init_by_distance(inp, config, reverse=reverse)
+            print(
+                f"Final result: {s} - "
+                f"{cal(s[config.params.num_drone:], s[:config.params.num_drone], inp['tau'], inp['tau_a'], inp['num_cus'], config, {})}")
+
+            s = init_by_angle(inp, config, reverse=reverse, direction=1)
+            print(
+                f"Final result: {s} - "
+                f"{cal(s[config.params.num_drone:], s[:config.params.num_drone], inp['tau'], inp['tau_a'], inp['num_cus'], config, {})}")
+
+            s = init_by_angle(inp, config, reverse=reverse, direction=-1)
+            print(
+                f"Final result: {s} - "
+                f"{cal(s[config.params.num_drone:], s[:config.params.num_drone], inp['tau'], inp['tau_a'], inp['num_cus'], config, {})}")
     else:
         for data_path in config.data_path.split(","):
             paths = glob.glob(data_path)
