@@ -1,7 +1,8 @@
-run_type: init
+#run_type: cal
+run_type: tabu_1211
 
 params:
-  L_w: 20
+  L_w: 60
   L_d: 120
   staff_velocity: 0.58
   drone_velocity: 0.83
@@ -20,9 +21,9 @@ tabu_params:
   beta: 0.5
   epsilon: 1e-3
   use_weights: True
-  action_weights: {"move10": 0.2, "move11": 0.2,
-                       "move20": 0.15, "move21": 0.2,
-                       "move2opt": 0.15, "move01": 0.05, "move02": 0.05}
+  action_weights: { "move10": 0.2, "move11": 0.2,
+                    "move20": 0.15, "move21": 0.2,
+                    "move2opt": 0.15, "move01": 0.05, "move02": 0.05 }
 
 ejection:
   max_level: 2
@@ -38,5 +39,5 @@ solver:
 
 test:
   data_path: data/old/12.20.4.txt
-  staff: [ [ 3, 2, 10, 5, 7, 11 ] ]
-  drone: [ [ [ 12, 4, 1 ], [ 9, 6, 8 ] ] ]
+  staff: [ [ 2, 10 ] ]
+  drone: [ [[12, 6, 9], [11, 3], [7, 5, 4, 1, 8]] ]

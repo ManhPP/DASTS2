@@ -4,6 +4,7 @@ import random
 from collections import deque
 from copy import deepcopy
 
+from src.ts.init_solution import init_by_distance, init_by_angle
 from src.ts.ts_utils import TSUtils
 from src.utils import make_dirs_if_not_present
 
@@ -30,6 +31,7 @@ class TabuSearch:
         :param tabu_size:
         :param max_steps:
         """
+        self.init_info = "random"
         self.config = config
         self.inp = inp
         self.penalty_params = self.config.tabu_params
@@ -43,7 +45,7 @@ class TabuSearch:
                 self.action_weights.append(self.config.tabu_params.action_weights[a])
 
         if initial_state is None:
-            initial_state = self.init_solution()
+            initial_state = self.init_solution_heuristic()
         self.initial_state = initial_state
 
         if isinstance(tabu_size, int) and tabu_size > 0:
@@ -56,7 +58,27 @@ class TabuSearch:
         else:
             raise TypeError('Maximum steps must be a positive integer')
 
-    def init_solution(self):
+    def init_solution_heuristic(self):
+        solution = self.init_solution_random()
+        for reverse in [True, False]:
+            s = init_by_distance(self.inp, self.config, reverse=reverse)
+            if self._score(s) < self._score(solution):
+                solution = s
+                self.init_info = f"distance-reversed: {reverse}"
+
+            s = init_by_angle(self.inp, self.config, reverse=reverse, direction=1)
+            if self._score(s) < self._score(solution):
+                solution = s
+                self.init_info = f"angle-reversed: {reverse}-direction: 1"
+
+            s = init_by_angle(self.inp, self.config, reverse=reverse, direction=-1)
+            if self._score(s) < self._score(solution):
+                solution = s
+                self.init_info = f"angle-reversed: {reverse}-direction: -1"
+
+        return solution
+
+    def init_solution_random(self):
         num_cus = self.inp["num_cus"]
         num_staff = self.config.params["num_staff"]
         num_drone = self.config.params["num_drone"]
@@ -284,10 +306,13 @@ class TabuSearch:
         return r
 
     def run(self, verbose=True):
+        r = {"init_info": {"method": self.init_info, "init": str(self.initial_state)}}
+
         tabu_info = self.run_tabu(verbose)
-        r = {"tabu": tabu_info}
+        r["tabu"] = tabu_info
         post_optimization_info = self.run_post_optimization(verbose)
         r.update(post_optimization_info)
+
 
         make_dirs_if_not_present(self.config.result_folder)
 

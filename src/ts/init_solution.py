@@ -156,7 +156,8 @@ def init_by_angle(inp, config, reverse=False, direction=None):
                 if len(current_trip) > 0:
                     break
 
-                if travel_time[i] + time_dict[last_cus, next_cus] + time_dict[next_cus, 0] - time_dict[0, next_cus if len(current_trip) == 0 else current_trip[0]] <= config.params.L_w:
+                if travel_time[i] + time_dict[last_cus, next_cus] + time_dict[next_cus, 0] - time_dict[
+                    0, next_cus if len(current_trip) == 0 else current_trip[0]] <= config.params.L_w:
                     current_trip.append(next_cus)
                     travel_time[i] = travel_time[i] + time_dict[last_cus, next_cus]
                     visited_cus.append(next_cus)
