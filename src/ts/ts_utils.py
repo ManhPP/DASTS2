@@ -677,7 +677,7 @@ class TSUtils:
 
     def run_ejection(self, solution):
         max_level = self.config.ejection.max_level
-        best_gain = float("-inf")
+        best_gain = 0
         best_shift_sequence = []
         current_gain = 0
         current_level = 0
@@ -759,7 +759,7 @@ class TSUtils:
 
                 _cus_successor = self.get_successor(solution, _cus)
                 if _cus_successor == self.num_cus + 1:
-                    d = dis[_cus, x] + dis[x, _cus_successor] - dis[_cus, _cus_predecessor]
+                    d = dis[_cus, x] + dis[x, _cus_successor] - dis[_cus, _cus_successor]
 
                     if gain - d > best_gain:
                         self.insert_after(solution, x, _cus)

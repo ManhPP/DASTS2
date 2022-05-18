@@ -24,6 +24,8 @@ class TabuSearch:
 
     max_steps = None
 
+    cache = {}
+
     def __init__(self, inp, config, initial_state, tabu_size, max_steps):
         """
 
@@ -158,6 +160,7 @@ class TabuSearch:
             self.tabu_dict[act] = deque(maxlen=self.tabu_size)
         self.current = self.initial_state
         self.best = self.initial_state
+        self.cache["order_neighbor"] = []
 
     def _score(self, state, return_all=False):
         """
@@ -193,7 +196,10 @@ class TabuSearch:
         :return:
         """
 
-        return min(neighborhood.items(), key=lambda x: self._score(x[1]))
+        if len(self.cache["order_neighbor"]) == 0:
+            self.cache["order_neighbor"] = sorted(neighborhood.items(), key=lambda x: self._score(x[1]))
+
+        return self.cache["order_neighbor"].pop(0)
 
     def update_penalty_param(self, dz, cz):
         alpha1 = self.penalty_params.get("alpha1", 0)
@@ -221,6 +227,7 @@ class TabuSearch:
         r = {}
         self._clear()
         for _ in range(self.max_steps):
+            self.cache["order_neighbor"] = []
             self.cur_steps += 1
             if verbose:
                 print(
@@ -259,10 +266,8 @@ class TabuSearch:
                                              "t": "in tabu"}
                         break
                     else:
-                        neighborhood.pop(ext)
                         ext, neighborhood_best = self._best(neighborhood)
                 elif abs(step_best_info[0] - self._score(cur)) < self.config.tabu_params.epsilon:
-                    neighborhood.pop(ext)
                     if len(neighborhood) > 0:
                         ext, neighborhood_best = self._best(neighborhood)
                     else:
@@ -312,7 +317,6 @@ class TabuSearch:
         r["tabu"] = tabu_info
         post_optimization_info = self.run_post_optimization(verbose)
         r.update(post_optimization_info)
-
 
         make_dirs_if_not_present(self.config.result_folder)
 

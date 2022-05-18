@@ -37,7 +37,7 @@ if __name__ == '__main__':
                         ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size, config.tabu_params.max_iter)
                         ts.run()
                         # ts.utils.move02([[[6, 12, 5]], [[10, 7, 11]], [2, 3, 9], [8, 1, 4]])
-                        # ts.utils.run_ejection([[[5, 10]], [[11, 2, 9, 8, 4, 1], [12, 3, 6, 7]], [], []])
+                        # ts.utils.run_ejection([[[11, 1, 10, 12, 8, 5, 2]], [4, 9, 6, 7, 3]])
                         # print(ts.utils.get_score([[[5, 7, 11]], [[1, 8, 6, 12, 3, 9]], [4], [10, 2]]))
                         # print(ts.utils.get_score([[[5, 7, 11]], [[8, 6, 12, 3, 9]], [1, 4], [10, 2]]))
                         print("done!")

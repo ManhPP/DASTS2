@@ -1,5 +1,5 @@
 #run_type: cal
-run_type: tabu_1211
+run_type: tabu_12_1_1
 
 params:
   L_w: 60
@@ -9,7 +9,7 @@ params:
   num_staff: 1
   num_drone: 1
 
-data_path: data/old/12.20.4.txt
+data_path: data/old/12.5.3.txt
 
 result_folder: result
 
@@ -38,6 +38,6 @@ solver:
     cplex: { }
 
 test:
-  data_path: data/old/12.20.4.txt
-  staff: [ [ 2, 10 ] ]
-  drone: [ [[12, 6, 9], [11, 3], [7, 5, 4, 1, 8]] ]
+  data_path: data/old/12.5.3.txt
+  staff: [ [4, 9, 6, 7, 3] ]
+  drone: [ [[11, 1, 10, 12, 8, 5, 2]] ]
