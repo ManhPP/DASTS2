@@ -9,7 +9,7 @@ from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
 from src.ts.tabu import TabuSearch
-from src.utils import cal
+from src.utils import cal, get_result
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS2')
@@ -25,6 +25,8 @@ if __name__ == '__main__':
         print(
             f"Final result: "
             f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config, {})}")
+    elif config.run_type == "result":
+        get_result(config)
     else:
         for data_path in config.data_path.split(","):
             paths = glob.glob(data_path)

@@ -46,14 +46,15 @@ def load_input(config, data_set):
             result["C1"].append(i)
     result['data_set'] = os.path.splitext(os.path.basename(data_set))[0]
 
-    p = {'x': [i for i, _ in coordinates_matrix], 'y': [i for _, i in coordinates_matrix]}
+    if not os.path.exists("img_" + result['data_set'] + ".png"):
+        p = {'x': [i for i, _ in coordinates_matrix], 'y': [i for _, i in coordinates_matrix]}
 
-    n = [i for i in range(len(coordinates_matrix))]
+        n = [i for i in range(len(coordinates_matrix))]
 
-    fig, ax = plt.subplots()
-    ax.scatter(p['x'], p['y'])
+        fig, ax = plt.subplots()
+        ax.scatter(p['x'], p['y'])
 
-    for i, txt in enumerate(n):
-        ax.annotate(txt, (p['x'][i], p['y'][i]))
-    plt.savefig("img_" + result['data_set'] + ".png")
+        for i, txt in enumerate(n):
+            ax.annotate(txt, (p['x'][i], p['y'][i]))
+        plt.savefig("img_" + result['data_set'] + ".png")
     return result

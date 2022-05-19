@@ -1,3 +1,5 @@
+import glob
+import json
 import os
 
 
@@ -120,6 +122,26 @@ def make_dirs_if_not_present(path):
     """
     if not os.path.exists(path):
         os.makedirs(path)
+
+
+def get_result(config):
+    paths = glob.glob(config.result.path)
+    print(paths)
+    result = {}
+    for data_path in paths:
+        data = json.loads(open(data_path).read())
+        if "ts" in data_path or "tabu" in data_path:
+            optimal = {"tabu": data["tabu"]["tabu-score"],
+                       "ejection": data["ejection"]["ejection-score"],
+                       "inter": data["inter"]["inter-score"],
+                       "intra": data["intra"]["intra-score"]}
+        else:
+            optimal = data["Optimal"]
+
+        result[os.path.splitext(os.path.basename(data_path))[0]] = optimal
+    with open(os.path.join(os.path.dirname(paths[0]), 'final_result.json'),
+              'w') as json_file:
+        json.dump(result, json_file, indent=2)
 
 
 if __name__ == '__main__':
