@@ -25,8 +25,10 @@ def init_by_distance(inp, config, reverse=False):
     i = 0
     C1 = inp['C1']
     visited_cus = []
+    n_iter = 0
 
-    while len(visited_cus) < inp['num_cus']:
+    while len(visited_cus) < inp['num_cus'] and n_iter < (num_drone + num_staff) * inp['num_cus']:
+        n_iter += 1
         time_dict = inp['tau']
         if i < num_drone and len(solution[i]) == 0:
             solution[i].append([])
@@ -78,6 +80,9 @@ def init_by_distance(inp, config, reverse=False):
         i += 1
         i %= num_drone + num_staff
 
+    if len(visited_cus) < inp['num_cus']:
+        return None
+
     return solution
 
 
@@ -127,7 +132,9 @@ def init_by_angle(inp, config, reverse=False, direction=None):
     i = 0
     C1 = inp['C1']
     visited_cus = []
-    while len(visited_cus) < inp['num_cus']:
+    n_iter = 0
+    while len(visited_cus) < inp['num_cus'] and n_iter < (num_drone + num_staff) * inp['num_cus']:
+        n_iter += 1
         if i < num_drone:
             solution[i].append([])
 
@@ -168,5 +175,8 @@ def init_by_angle(inp, config, reverse=False, direction=None):
 
         i += 1
         i %= num_drone + num_staff
+
+    if len(visited_cus) < inp['num_cus']:
+        return None
 
     return solution

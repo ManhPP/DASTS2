@@ -20,6 +20,8 @@ class TSUtils:
                        "move20": self.move20, "move21": self.move21,
                        "move2opt": self.move2opt, "move01": self.move01, "move02": self.move02}
 
+        self.cache = {"index": {}}
+
     def get_score(self, solution, penalty=None):
         """
 
@@ -63,20 +65,21 @@ class TSUtils:
         :param val:
         :return:
         """
-        for i in range(self.num_drone):
-            drone_trip = solution[i]
-            for j, trip in enumerate(drone_trip):
-                for k, node in enumerate(trip):
-                    if node == val:
-                        return i, j, k
 
-        for i in range(self.num_drone, self.num_drone + self.num_staff):
-            staff_trip = solution[i]
-            for j, node in enumerate(staff_trip):
-                if node == val:
-                    return i, j
+        if str(solution) not in self.cache["index"]:
+            self.cache['index'][str(solution)] = {}
+            for i in range(self.num_drone):
+                drone_trip = solution[i]
+                for j, trip in enumerate(drone_trip):
+                    for k, node in enumerate(trip):
+                        self.cache['index'][str(solution)][node] = i, j, k
 
-        return None
+            for i in range(self.num_drone, self.num_drone + self.num_staff):
+                staff_trip = solution[i]
+                for j, node in enumerate(staff_trip):
+                    self.cache['index'][str(solution)][node] = i, j
+
+        return self.cache['index'][str(solution)].get(val, None)
 
     def get_predecessor(self, solution, val):
         index = self.find_index(solution, val)

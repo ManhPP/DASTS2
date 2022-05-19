@@ -1,22 +1,25 @@
 #run_type: cal
 #run_type: result
-run_type: gurobi_12_2_2
+run_type: ts_100_2_2
 
 params:
   L_w: 60
-  L_d: 120
+  L_d: 60
   staff_velocity: 0.58
   drone_velocity: 0.83
-  num_staff: 2
-  num_drone: 2
+  num_staff: 1
+  num_drone: 1
+  use_ejection: True
+  use_inter: False
+  use_intra: False
 
-data_path: data/old/12.20.2.txt
+data_path: data/old/100.20.2.txt
 
 result_folder: result
 
 tabu_params:
   tabu_size: 5
-  max_iter: 200
+  max_iter: 3
   alpha1: 1
   alpha2: 1
   beta: 0.5

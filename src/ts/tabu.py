@@ -64,17 +64,17 @@ class TabuSearch:
         solution = self.init_solution_random()
         for reverse in [True, False]:
             s = init_by_distance(self.inp, self.config, reverse=reverse)
-            if self._score(s) < self._score(solution):
+            if s is not None and self._score(s) < self._score(solution):
                 solution = s
                 self.init_info = f"distance-reversed: {reverse}"
 
             s = init_by_angle(self.inp, self.config, reverse=reverse, direction=1)
-            if self._score(s) < self._score(solution):
+            if s is not None and self._score(s) < self._score(solution):
                 solution = s
                 self.init_info = f"angle-reversed: {reverse}-direction: 1"
 
             s = init_by_angle(self.inp, self.config, reverse=reverse, direction=-1)
-            if self._score(s) < self._score(solution):
+            if s is not None and self._score(s) < self._score(solution):
                 solution = s
                 self.init_info = f"angle-reversed: {reverse}-direction: -1"
 
@@ -298,15 +298,18 @@ class TabuSearch:
 
     def run_post_optimization(self, verbose=True):
         r = {}
-        ejection_log = self.utils.run_ejection(solution=self.best)
-        r["ejection"] = {"ejection-sol": str(self.best), "ejection-score": str(self._score(self.best)),
-                         "ejection-log": ejection_log}
 
-        self.utils.run_inter_route(solution=self.best)
-        r["inter"] = {"inter-sol": str(self.best), "inter-score": str(self._score(self.best)), "inter-log": {}}
+        if self.config.params.use_ejection:
+            ejection_log = self.utils.run_ejection(solution=self.best)
+            r["ejection"] = {"ejection-sol": str(self.best), "ejection-score": str(self._score(self.best)),
+                             "ejection-log": ejection_log}
+        if self.config.params.use_inter:
+            self.utils.run_inter_route(solution=self.best)
+            r["inter"] = {"inter-sol": str(self.best), "inter-score": str(self._score(self.best)), "inter-log": {}}
 
-        self.utils.run_intra_route(solution=self.best)
-        r["intra"] = {"intra-sol": str(self.best), "intra-score": str(self._score(self.best)), "intra-log": {}}
+        if self.config.params.use_inter:
+            self.utils.run_intra_route(solution=self.best)
+            r["intra"] = {"intra-sol": str(self.best), "intra-score": str(self._score(self.best)), "intra-log": {}}
 
         return r
 
