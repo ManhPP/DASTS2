@@ -3,13 +3,12 @@ import json
 import os
 
 
-def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=None,
+def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config,
         drone_trip_cal=None, staff_trip_cal=None, print_log=False):
     """
 
     :param staff_trip_cal:
     :param drone_trip_cal:
-    :param penalty:
     :param staff_path_list:
     :param drone_path_list:
     :param tau:
@@ -19,10 +18,6 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=N
     :param print_log:
     :return:
     """
-    if penalty is None:
-        penalty = dict()
-    if penalty is None:
-        penalty = {}
     T = {}
     A = {}
     B = {}
@@ -100,10 +95,7 @@ def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config, penalty=N
         print(f"dz: {dz}")
         print(f"cz: {cz}")
 
-    alpha1 = penalty.get("alpha1", 0) if penalty is not None else 0
-    alpha2 = penalty.get("alpha2", 0) if penalty is not None else 0
-
-    return c + alpha1 * dz + alpha2 * cz, dz, cz
+    return c, dz, cz
 
 
 def make_dirs(path):

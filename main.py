@@ -26,7 +26,7 @@ if __name__ == '__main__':
         inp = load_input(config, config.test.data_path)
         print(
             f"Final result: "
-            f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config, {})}")
+            f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config)}")
     elif config.run_type == "result":
         get_result(config)
     elif config.run_type == "test":

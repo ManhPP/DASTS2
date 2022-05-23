@@ -20,7 +20,7 @@ class TSUtils:
                        "move20": self.move20, "move21": self.move21,
                        "move2opt": self.move2opt, "move01": self.move01, "move02": self.move02}
 
-        self.cache = {"index": {}}
+        self.cache = {"index": {}, "score": {}}
 
     def get_score(self, solution, penalty=None):
         """
@@ -29,9 +29,20 @@ class TSUtils:
         :param penalty:
         :return:
         """
-        return cal(solution[self.config.params["num_drone"]:],
-                   solution[:self.config.params["num_drone"]], self.inp['tau'],
-                   self.inp['tau_a'], self.inp['num_cus'], self.config, penalty)
+        if penalty is None:
+            penalty = {}
+        if str(solution) not in self.cache["score"]:
+            self.cache["score"][str(solution)] = cal(solution[self.config.params["num_drone"]:],
+                                                     solution[:self.config.params["num_drone"]], self.inp['tau'],
+                                                     self.inp['tau_a'], self.inp['num_cus'], self.config)
+        c = self.cache["score"][str(solution)][0]
+        cz = self.cache["score"][str(solution)][1]
+        dz = self.cache["score"][str(solution)][2]
+
+        alpha1 = penalty.get("alpha1", 0) if penalty is not None else 0
+        alpha2 = penalty.get("alpha2", 0) if penalty is not None else 0
+
+        return c + alpha1 * dz + alpha2 * cz, dz, cz
 
     def get_score_some_trip(self, solution, trip, penalty=None):
         """
@@ -42,12 +53,19 @@ class TSUtils:
         :return:
         """
 
+        if penalty is None:
+            penalty = {}
         drone_trip_cal = [i for i in trip if i < self.num_drone]
         staff_trip_cal = [i - self.num_drone for i in trip if i >= self.num_drone]
 
-        return cal(solution[self.config.params["num_drone"]:],
-                   solution[:self.config.params["num_drone"]], self.inp['tau'],
-                   self.inp['tau_a'], self.inp['num_cus'], self.config, penalty, drone_trip_cal, staff_trip_cal)
+        c, cz, dz = cal(solution[self.config.params["num_drone"]:],
+                        solution[:self.config.params["num_drone"]], self.inp['tau'],
+                        self.inp['tau_a'], self.inp['num_cus'], self.config, drone_trip_cal, staff_trip_cal)
+
+        alpha1 = penalty.get("alpha1", 0) if penalty is not None else 0
+        alpha2 = penalty.get("alpha2", 0) if penalty is not None else 0
+
+        return c + alpha1 * dz + alpha2 * cz, dz, cz
 
     def get_all_neighbors(self, solution, act):
         """
