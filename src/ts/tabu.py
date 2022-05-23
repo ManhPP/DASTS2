@@ -226,12 +226,15 @@ class TabuSearch:
 
         r = {}
         self._clear()
+        not_improve_iter = 0
         for _ in range(self.max_steps):
+            previous_best = self.best
             self.cache["order_neighbor"] = []
             self.cur_steps += 1
             if verbose:
                 print(
-                    f"Step: {self.cur_steps} - Best: {self._score(self.best)} - Step Best: {self._score(self.current)}")
+                    f"Step: {self.cur_steps} - Best: {self._score(self.best, True)} "
+                    f"- Step Best: {self._score(self.current, True)}")
 
                 print(f"{self.current}")
             act, neighborhood = self._neighborhood()
@@ -286,6 +289,14 @@ class TabuSearch:
                                          "ext": str(self.get_tabu(act, ext)),
                                          "t": "not in tabu"}
                     break
+
+            if self.best == previous_best:
+                not_improve_iter += 1
+
+            if not_improve_iter > self.config.tabu_params.terminate_iter:
+                print("TERMINATING TABU - REACHED MAXIMUM NOT IMPROVE STEPS")
+                break
+
         print("TERMINATING TABU - REACHED MAXIMUM STEPS")
         if verbose:
             print(self)

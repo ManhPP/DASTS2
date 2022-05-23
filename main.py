@@ -2,8 +2,10 @@ import argparse
 import glob
 import os
 from datetime import datetime
+import numpy as np
 
 from omegaconf import OmegaConf
+from scipy.spatial.distance import cdist
 
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
@@ -27,6 +29,36 @@ if __name__ == '__main__':
             f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config, {})}")
     elif config.run_type == "result":
         get_result(config)
+    elif config.run_type == "test":
+        m_cus = {}
+        m_r = {}
+        for data_path in config.data_path.split(","):
+            paths = glob.glob(data_path)
+            print(paths)
+            for data_set in paths:
+                print(data_set)
+                name_data = os.path.splitext(os.path.basename(data_set))[0]
+                cus = name_data.split(".")[0]
+                r = name_data.split(".")[1]
+                coordinates_matrix = np.loadtxt(data_set, skiprows=2)[:, :2]
+                coordinates_matrix = np.insert(coordinates_matrix, 0, np.zeros(2), 0)
+                dis_matrix = cdist(coordinates_matrix, coordinates_matrix)
+                m = np.max(dis_matrix)
+                if m_cus.get(cus, 0) < m:
+                    m_cus[cus] = m
+                if m_r.get(r, 0) < m:
+                    m_r[r] = m
+
+        mt_cus = {"staff": {}, "drone": {}}
+        mt_r = {"staff": {}, "drone": {}}
+        for i in m_cus:
+            mt_cus["drone"][i] = m_cus[i]/config.params.drone_velocity
+            mt_cus["staff"][i] = m_cus[i]/config.params.staff_velocity
+        for i in m_r:
+            mt_r["drone"][i] = m_r[i]/config.params.drone_velocity
+            mt_r["staff"][i] = m_r[i]/config.params.staff_velocity
+        print("final: ", m_cus)
+        print("final: ", m_r)
     else:
         for data_path in config.data_path.split(","):
             paths = glob.glob(data_path)
@@ -35,6 +67,7 @@ if __name__ == '__main__':
                 print(data_set)
                 try:
                     inp = load_input(config, data_set)
+
                     if config.run_type.startswith("ts") or config.run_type.startswith("tabu"):
                         ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size, config.tabu_params.max_iter)
                         ts.run()

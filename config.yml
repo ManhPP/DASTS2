@@ -1,25 +1,27 @@
 #run_type: cal
 #run_type: result
-run_type: ts_100_2_2
+run_type: tabu_12_2_2
+#run_type: test
 
 params:
   L_w: 60
-  L_d: 60
+  L_d: 120
   staff_velocity: 0.58
   drone_velocity: 0.83
-  num_staff: 1
-  num_drone: 1
-  use_ejection: True
+  num_staff: 2 # tinh tong khoang cach tu depot toi tung khach hang, roi chia cho van toc, chia tiep cho thoi gian cho
+  num_drone: 2 # toi da chi su dung 3 drone
+  use_ejection: False
   use_inter: False
   use_intra: False
 
-data_path: data/old/100.20.2.txt
+data_path: data/old/12.20.1.txt
 
 result_folder: result
 
 tabu_params:
   tabu_size: 5
-  max_iter: 3
+  max_iter: 500
+  terminate_iter: 100
   alpha1: 1
   alpha2: 1
   beta: 0.5
@@ -42,9 +44,12 @@ solver:
     cplex: { }
 
 test:
-  data_path: data/old/12.5.3.txt
-  staff: [ [4, 9, 6, 7, 3] ]
-  drone: [ [[11, 1, 10, 12, 8, 5, 2]] ]
+  data_path: data/old/100.40.1.txt
+  staff: [ [45, 80, 25, 17, 28, 3, 16, 59, 99, 39, 29]]
+  drone: [[[48, 36, 49, 15, 82, 30, 50, 10, 26, 31, 81, 4, 64], [56, 37, 69, 84, 21, 87, 68, 63, 13, 86, 65, 88], [12, 96, 98, 60, 90, 77, 79, 74, 14, 100], [46, 91, 93, 47, 7, 76, 22, 75, 95, 53, 71], [97, 57, 23, 5, 34, 94, 24, 51, 35, 41, 52], [54, 32, 27, 40, 42, 44, 73, 2], [19, 61, 11, 70, 72, 62, 55], [67, 43, 8, 6, 58, 38, 78, 85, 1, 18, 92, 33, 20, 89, 9, 83, 66]]]
+
+
+
 
 result:
-  path: result/tabu_12_2_2/05192022083328/*
+  path: result/gurobi_12_1_1/05182022222138/*.json
