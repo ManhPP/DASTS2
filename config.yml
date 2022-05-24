@@ -1,6 +1,6 @@
 #run_type: cal
 #run_type: result
-run_type: tabu_12_2_2
+run_type: tabu_6_1_1
 #run_type: test
 
 params:
@@ -10,11 +10,11 @@ params:
   drone_velocity: 0.83
   num_staff: 2 # tinh tong khoang cach tu depot toi tung khach hang, roi chia cho van toc, chia tiep cho thoi gian cho
   num_drone: 2 # toi da chi su dung 3 drone
-  use_ejection: False
-  use_inter: False
-  use_intra: False
+  use_ejection: True
+  use_inter: True
+  use_intra: True
 
-data_path: [data/old/100.*.1.txt]
+data_path: [data/old/6.5.1.txt]
 except_path: []
 
 result_folder: result
@@ -22,7 +22,8 @@ result_folder: result
 tabu_params:
   tabu_size: 5
   max_iter: 500
-  terminate_iter: 100
+  num_runs: 10
+  terminate_iter: 200
   alpha1: 1
   alpha2: 1
   beta: 0.5

@@ -26,7 +26,7 @@ class TabuSearch:
 
     cache = {}
 
-    def __init__(self, inp, config, initial_state, tabu_size, max_steps):
+    def __init__(self, inp, config, initial_state, tabu_size, max_steps, ext=0):
         """
 
         :param initial_state:
@@ -37,7 +37,7 @@ class TabuSearch:
         self.config = config
         self.inp = inp
         self.penalty_params = self.config.tabu_params
-
+        self.ext = ext
         self.utils = TSUtils(config, inp)
         self.actions = list(self.utils.action.keys())
         self.action_weights = None
@@ -188,7 +188,7 @@ class TabuSearch:
 
         return act, result
 
-    def _best(self, neighborhood):
+    def _best(self, neighborhood, reset=False):
         """
         Finds the best member of a neighborhood
 
@@ -196,10 +196,12 @@ class TabuSearch:
         :return:
         """
 
-        if len(self.cache["order_neighbor"]) == 0:
+        if reset:
             self.cache["order_neighbor"] = sorted(neighborhood.items(), key=lambda x: self._score(x[1]))
 
-        return self.cache["order_neighbor"].pop(0)
+        if len(self.cache["order_neighbor"]) > 0:
+            return self.cache["order_neighbor"].pop(0)
+        return None, None
 
     def update_penalty_param(self, dz, cz):
         alpha1 = self.penalty_params.get("alpha1", 0)
@@ -240,7 +242,7 @@ class TabuSearch:
             act, neighborhood = self._neighborhood()
 
             print(f"{act} - {len(neighborhood)}")
-            ext, neighborhood_best = self._best(neighborhood)
+            ext, neighborhood_best = self._best(neighborhood, True)
             tabu_list = self.tabu_dict[act]
 
             cur = self.current
@@ -270,9 +272,13 @@ class TabuSearch:
                         break
                     else:
                         ext, neighborhood_best = self._best(neighborhood)
+                        if ext is None:
+                            break
                 elif abs(step_best_info[0] - self._score(cur)) < self.config.tabu_params.epsilon:
                     if len(neighborhood) > 0:
                         ext, neighborhood_best = self._best(neighborhood)
+                        if ext is None:
+                            break
                     else:
                         break
                 else:
@@ -334,8 +340,8 @@ class TabuSearch:
 
         make_dirs_if_not_present(self.config.result_folder)
 
-        with open(os.path.join(self.config.result_folder, 'result_' + self.inp['data_set'] + '.json'),
-                  'w') as json_file:
+        with open(os.path.join(self.config.result_folder,
+                               'result_' + self.inp['data_set'] + '_' + str(self.ext) + '.json'), 'w') as json_file:
             json.dump(r, json_file, indent=2)
 
     @staticmethod

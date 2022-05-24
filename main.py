@@ -1,9 +1,11 @@
 import argparse
 import glob
+import json
 import os
+import timeit
 from datetime import datetime
-import numpy as np
 
+import numpy as np
 from omegaconf import OmegaConf
 from scipy.spatial.distance import cdist
 
@@ -52,11 +54,11 @@ if __name__ == '__main__':
         mt_cus = {"staff": {}, "drone": {}}
         mt_r = {"staff": {}, "drone": {}}
         for i in m_cus:
-            mt_cus["drone"][i] = m_cus[i]/config.params.drone_velocity
-            mt_cus["staff"][i] = m_cus[i]/config.params.staff_velocity
+            mt_cus["drone"][i] = m_cus[i] / config.params.drone_velocity
+            mt_cus["staff"][i] = m_cus[i] / config.params.staff_velocity
         for i in m_r:
-            mt_r["drone"][i] = m_r[i]/config.params.drone_velocity
-            mt_r["staff"][i] = m_r[i]/config.params.staff_velocity
+            mt_r["drone"][i] = m_r[i] / config.params.drone_velocity
+            mt_r["staff"][i] = m_r[i] / config.params.staff_velocity
         print("final: ", m_cus)
         print("final: ", m_r)
     else:
@@ -69,14 +71,24 @@ if __name__ == '__main__':
                 print(data_set)
                 try:
                     inp = load_input(config, data_set)
-
                     if config.run_type.startswith("ts") or config.run_type.startswith("tabu"):
-                        ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size, config.tabu_params.max_iter)
-                        ts.run()
+                        result_all = {}
+                        for run in range(1, config.tabu_params.num_runs + 1):
+                            ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size,
+                                            config.tabu_params.max_iter, run)
+                            start = timeit.default_timer()
+                            ts.run()
+                            end = timeit.default_timer()
+
+                            result_all[run] = {"obj": ts.utils.get_score(ts.best), "sol": str(ts.best),
+                                               "time": end - start}
                         # ts.utils.move02([[[6, 12, 5]], [[10, 7, 11]], [2, 3, 9], [8, 1, 4]])
                         # ts.utils.run_ejection([[[11, 1, 10, 12, 8, 5, 2]], [4, 9, 6, 7, 3]])
                         # print(ts.utils.get_score([[[5, 7, 11]], [[1, 8, 6, 12, 3, 9]], [4], [10, 2]]))
                         # print(ts.utils.get_score([[[5, 7, 11]], [[8, 6, 12, 3, 9]], [1, 4], [10, 2]]))
+                        with open(os.path.join(config.result_folder, 'result_all.json'),
+                                  'w') as json_file:
+                            json.dump(result_all, json_file, indent=2)
                         print("done!")
 
                     elif config.solver.solver == "GUROBI":
