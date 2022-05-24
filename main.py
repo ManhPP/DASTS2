@@ -65,14 +65,17 @@ if __name__ == '__main__':
         for data_path in config.data_path:
             paths = glob.glob(data_path)
             print(paths)
+            result_all = {}
+
             for data_set in paths:
                 if data_set in config.except_path:
                     continue
                 print(data_set)
+
                 try:
                     inp = load_input(config, data_set)
+                    result_all[inp['data_set']] = {}
                     if config.run_type.startswith("ts") or config.run_type.startswith("tabu"):
-                        result_all = {}
                         for run in range(1, config.tabu_params.num_runs + 1):
                             ts = TabuSearch(inp, config, None, config.tabu_params.tabu_size,
                                             config.tabu_params.max_iter, run)
@@ -80,15 +83,12 @@ if __name__ == '__main__':
                             ts.run()
                             end = timeit.default_timer()
 
-                            result_all[run] = {"obj": ts.utils.get_score(ts.best), "sol": str(ts.best),
-                                               "time": end - start}
+                            result_all[inp['data_set']][run] = {"obj": ts.utils.get_score(ts.best), "sol": str(ts.best),
+                                                                "time": end - start}
                         # ts.utils.move02([[[6, 12, 5]], [[10, 7, 11]], [2, 3, 9], [8, 1, 4]])
                         # ts.utils.run_ejection([[[11, 1, 10, 12, 8, 5, 2]], [4, 9, 6, 7, 3]])
                         # print(ts.utils.get_score([[[5, 7, 11]], [[1, 8, 6, 12, 3, 9]], [4], [10, 2]]))
                         # print(ts.utils.get_score([[[5, 7, 11]], [[8, 6, 12, 3, 9]], [1, 4], [10, 2]]))
-                        with open(os.path.join(config.result_folder, 'result_all.json'),
-                                  'w') as json_file:
-                            json.dump(result_all, json_file, indent=2)
                         print("done!")
 
                     elif config.solver.solver == "GUROBI":
@@ -99,3 +99,7 @@ if __name__ == '__main__':
                         raise "Unknown solver!"
                 except Exception as e:
                     print("Error: ", e)
+
+            with open(os.path.join(config.result_folder, 'result_all.json'),
+                      'w') as json_file:
+                json.dump(result_all, json_file, indent=2)
