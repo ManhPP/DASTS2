@@ -60,10 +60,12 @@ if __name__ == '__main__':
         print("final: ", m_cus)
         print("final: ", m_r)
     else:
-        for data_path in config.data_path.split(","):
+        for data_path in config.data_path:
             paths = glob.glob(data_path)
             print(paths)
             for data_set in paths:
+                if data_set in config.except_path:
+                    continue
                 print(data_set)
                 try:
                     inp = load_input(config, data_set)
