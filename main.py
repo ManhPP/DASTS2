@@ -9,11 +9,12 @@ import numpy as np
 from omegaconf import OmegaConf
 from scipy.spatial.distance import cdist
 
+from src.ap.local_search import LocalSearch
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
-from src.ts.tabu import TabuSearch
-from src.utils import cal, get_result
+from src.ap.tabu import TabuSearch
+from src.utils import cal, get_result, make_dirs_if_not_present
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS2')
@@ -85,11 +86,13 @@ if __name__ == '__main__':
 
                             result_all[inp['data_set']][run] = {"obj": ts.utils.get_score(ts.best), "sol": str(ts.best),
                                                                 "time": end - start}
-                        # ts.utils.move02([[[6, 12, 5]], [[10, 7, 11]], [2, 3, 9], [8, 1, 4]])
-                        # ts.utils.run_ejection([[[11, 1, 10, 12, 8, 5, 2]], [4, 9, 6, 7, 3]])
-                        # print(ts.utils.get_score([[[5, 7, 11]], [[1, 8, 6, 12, 3, 9]], [4], [10, 2]]))
-                        # print(ts.utils.get_score([[[5, 7, 11]], [[8, 6, 12, 3, 9]], [1, 4], [10, 2]]))
                         print("done!")
+                    elif config.run_type.startswith("lcs") or config.run_type.startswith("local"):
+                        for run in range(1, config.local_search_params.num_runs + 1):
+                            lcs = LocalSearch(inp, config)
+                            start = timeit.default_timer()
+                            lcs.run()
+                            end = timeit.default_timer()
 
                     elif config.solver.solver == "GUROBI":
                         solve_by_gurobi(config, inp)
@@ -99,6 +102,8 @@ if __name__ == '__main__':
                         raise "Unknown solver!"
                 except Exception as e:
                     print("Error: ", e)
+
+            make_dirs_if_not_present(config.result_folder)
 
             with open(os.path.join(config.result_folder, 'result_all.json'),
                       'w') as json_file:

@@ -4,7 +4,7 @@ import random
 from src.utils import cal
 
 
-class TSUtils:
+class APUtils:
     def __init__(self, config, inp):
         """
 
@@ -19,6 +19,9 @@ class TSUtils:
         self.action = {"move10": self.move10, "move11": self.move11,
                        "move20": self.move20, "move21": self.move21,
                        "move2opt": self.move2opt, "move01": self.move01, "move02": self.move02}
+        self.lcs_neighborhoods = ["intra-relocate", "intra-exchange", "intra-2opt", "intra-or-opt",
+                                  "inter-relocate", "inter-exchange", "inter-or-opt", "inter-2opt",
+                                  "inter-cross-exchange", "ejection"]
 
         self.cache = {"index": {}, "score": {}}
 
@@ -696,7 +699,8 @@ class TSUtils:
 
         return s
 
-    def run_ejection(self, solution):
+    def run_ejection(self, _solution):
+        solution = copy.deepcopy(_solution)
         max_level = self.config.ejection.max_level
         best_gain = 0
         best_shift_sequence = []
@@ -762,9 +766,7 @@ class TSUtils:
 
                     if dz == 0 and cz == 0:
                         best_shift_sequence = shift_sequence[:]
-                        print(best_shift_sequence)
                         best_gain = gain
-                        print(best_gain)
                     elif level + 1 <= max_level:
                         for yr in trip:
                             s = copy.deepcopy(solution)
@@ -792,9 +794,7 @@ class TSUtils:
 
                         if dz == 0 and cz == 0:
                             best_shift_sequence = shift_sequence[:]
-                            print(best_shift_sequence)
                             best_gain = gain
-                            print(best_gain)
                         elif level + 1 <= max_level:
                             for yr in trip:
                                 s = copy.deepcopy(solution)
@@ -811,17 +811,13 @@ class TSUtils:
             self.insert_by_index(solution, x, x_ind)
 
         for cus in range(1, self.num_cus + 1):
-            print(cus)
             ejection(cus, current_gain, current_level)
-
-        print(best_shift_sequence)
-        print(best_gain)
 
         for cus, index in best_shift_sequence:
             self.delete_by_val(solution, cus)
             self.insert_by_index(solution, cus, index)
 
-        return {"best_shift_sequence": str(best_shift_sequence), "best_gain": str(best_gain)}
+        return solution
 
     def run_inter_route(self, solution):
         inter = [self.relocate, self.exchange, self.two_opt, self.or_opt,
@@ -923,6 +919,114 @@ class TSUtils:
             if not has_improve:
                 break
             improve_set = new_improve_set
+
+    def get_best_sol_by_neighbor(self, solution, neighbor):
+        cur_score = float('inf')
+        cur_sol = None
+
+        if neighbor == "intra-relocate":
+            for x in range(1, self.num_cus + 1):
+                for y in range(1, self.num_cus + 1):
+                    s = self.relocate(solution, x, y, "intra")
+                    if s is not None:
+                        s_score = self.get_score(s)
+                        if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                            cur_sol = s
+                            cur_score = s_score[0]
+
+        elif neighbor == "intra-exchange":
+            for x in range(1, self.num_cus + 1):
+                for y in range(1, self.num_cus + 1):
+                    s = self.exchange(solution, x, y, "intra")
+                    if s is not None:
+                        s_score = self.get_score(s)
+                        if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                            cur_sol = s
+
+        elif neighbor == "intra-2opt":
+            for x1 in range(1, self.num_cus + 1):
+                for x2 in range(1, self.num_cus + 1):
+                    for y1 in range(1, self.num_cus + 1):
+                        for y2 in range(1, self.num_cus + 1):
+                            s = self.two_opt(solution, x1, x2, y1, y2, "intra")
+                            if s is not None:
+                                s_score = self.get_score(s)
+                                if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                    cur_sol = s
+                                    cur_score = s_score[0]
+
+        elif neighbor == "intra-or-opt":
+            for x1 in range(1, self.num_cus + 1):
+                for x2 in range(1, self.num_cus + 1):
+                    for y in range(1, self.num_cus + 1):
+                        s = self.or_opt(solution, x1, x2, y, route_type="intra")
+                        if s is not None:
+                            s_score = self.get_score(s)
+                            if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                cur_sol = s
+                                cur_score = s_score[0]
+
+        elif neighbor == "inter-relocate":
+            for x in range(1, self.num_cus + 1):
+                for y in range(1, self.num_cus + 1):
+                    s = self.relocate(solution, x, y, "inter")
+                    if s is not None:
+                        s_score = self.get_score(s)
+                        if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                            cur_sol = s
+                            cur_score = s_score[0]
+
+        elif neighbor == "inter-exchange":
+            for x in range(1, self.num_cus + 1):
+                for y in range(1, self.num_cus + 1):
+                    s = self.exchange(solution, x, y, "inter")
+                    if s is not None:
+                        s_score = self.get_score(s)
+                        if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                            cur_sol = s
+                            cur_score = s_score[0]
+
+        elif neighbor == "inter-or-opt":
+            for x1 in range(1, self.num_cus + 1):
+                for x2 in range(1, self.num_cus + 1):
+                    for y in range(1, self.num_cus + 1):
+                        s = self.or_opt(solution, x1, x2, y, route_type="inter")
+                        if s is not None:
+                            s_score = self.get_score(s)
+                            if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                cur_sol = s
+                                cur_score = s_score[0]
+
+        elif neighbor == "inter-2opt":
+            for x1 in range(1, self.num_cus + 1):
+                for x2 in range(1, self.num_cus + 1):
+                    for y1 in range(1, self.num_cus + 1):
+                        for y2 in range(1, self.num_cus + 1):
+                            s = self.two_opt(solution, x1, x2, y1, y2, "inter")
+                            if s is not None:
+                                s_score = self.get_score(s)
+                                if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                    cur_sol = s
+                                    cur_score = s_score[0]
+        elif neighbor == "inter-cross-exchange":
+            for x1 in range(1, self.num_cus + 1):
+                for x2 in range(1, self.num_cus + 1):
+                    for y1 in range(1, self.num_cus + 1):
+                        for y2 in range(1, self.num_cus + 1):
+                            s = self.inter_cross_exchange(solution, x1, x2, y1, y2)
+                            if s is not None:
+                                s_score = self.get_score(s)
+                                if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                    cur_sol = s
+                                    cur_score = s_score[0]
+
+        elif neighbor == "ejection":
+            s = self.run_ejection(solution)
+            if s is not None:
+                s_score = self.get_score(s)
+                if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                    cur_sol = s
+        return cur_sol
 
 
 if __name__ == '__main__':

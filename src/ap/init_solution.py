@@ -180,3 +180,62 @@ def init_by_angle(inp, config, reverse=False, direction=None):
         return None
 
     return solution
+
+
+def init_random(inp, config):
+    num_cus = inp["num_cus"]
+    num_staff = config.params["num_staff"]
+    num_drone = config.params["num_drone"]
+    L_w = config.params["L_w"]
+    L_d = config.params["L_d"]
+
+    tau_a = inp["tau_a"]
+
+    C1 = inp["C1"]
+    tmp = [i for i in range(1, num_cus + 1) if i not in C1]
+
+    random.shuffle(tmp)
+    solution = []
+
+    for i in range(num_drone + num_staff - 1):
+        tmp.insert(random.randint(0, len(tmp) + 1), 0)
+
+    indices = [i for i, x in enumerate(tmp) if x == 0]
+
+    for i in C1:
+        tmp.insert(random.randint(indices[num_drone - 1] + 1, len(tmp) + 1), i)
+
+    trip = []
+    for i in tmp:
+        if i != 0:
+            trip.append(i)
+        else:
+            solution.append(trip)
+            trip = []
+
+    solution.append(trip)
+    for i in range(num_drone):
+        if len(solution[i]) == 0:
+            continue
+        t_d = 0
+        t_w = -tau_a[0, solution[i][0]]
+        prev = 0
+        new_trip = []
+        sub_trip = []
+        for ind, cus in enumerate(solution[i]):
+            if t_d + tau_a[prev, cus] + tau_a[cus, num_cus + 1] > L_d \
+                    or t_w + tau_a[prev, cus] + tau_a[cus, num_cus + 1] > L_w:
+                t_d = 0
+                t_w = -tau_a[0, solution[i][ind]]
+                prev = 0
+                new_trip.append(sub_trip)
+                sub_trip = [cus]
+            else:
+                t_d += tau_a[prev, cus]
+                t_w += tau_a[prev, cus]
+                prev = cus
+                sub_trip.append(cus)
+        new_trip.append(sub_trip)
+        solution[i] = new_trip
+
+    return solution
