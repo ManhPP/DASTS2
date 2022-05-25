@@ -9,11 +9,11 @@ import numpy as np
 from omegaconf import OmegaConf
 from scipy.spatial.distance import cdist
 
-from src.ap.local_search import LocalSearch
+from src.ap.lcs.local_search import LocalSearch
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
-from src.ap.tabu import TabuSearch
+from src.ap.tabu.tabu import TabuSearch
 from src.utils import cal, get_result, make_dirs_if_not_present
 
 if __name__ == '__main__':
@@ -63,11 +63,11 @@ if __name__ == '__main__':
         print("final: ", m_cus)
         print("final: ", m_r)
     else:
+        result_all = {}
+
         for data_path in config.data_path:
             paths = glob.glob(data_path)
             print(paths)
-            result_all = {}
-
             for data_set in paths:
                 if data_set in config.except_path:
                     continue
@@ -106,8 +106,8 @@ if __name__ == '__main__':
                 except Exception as e:
                     print("Error: ", e)
 
-            make_dirs_if_not_present(config.result_folder)
+        make_dirs_if_not_present(config.result_folder)
 
-            with open(os.path.join(config.result_folder, 'result_all.json'),
-                      'w') as json_file:
-                json.dump(result_all, json_file, indent=2)
+        with open(os.path.join(config.result_folder, 'result_all.json'),
+                  'w') as json_file:
+            json.dump(result_all, json_file, indent=2)

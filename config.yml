@@ -1,7 +1,7 @@
 #run_type: cal
 #run_type: result
-run_type: lcs
-#run_type: tabu_6_1_1
+#run_type: lcs
+run_type: tabu_6_1_1
 #run_type: test
 
 params:
