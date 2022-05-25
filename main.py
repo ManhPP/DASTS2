@@ -91,8 +91,11 @@ if __name__ == '__main__':
                         for run in range(1, config.local_search_params.num_runs + 1):
                             lcs = LocalSearch(inp, config)
                             start = timeit.default_timer()
-                            lcs.run()
+                            r = lcs.run()
                             end = timeit.default_timer()
+
+                            result_all[inp['data_set']][run] = {"obj": str(r[0]), "sol": str(r[1]),
+                                                                "time": end - start}
 
                     elif config.solver.solver == "GUROBI":
                         solve_by_gurobi(config, inp)

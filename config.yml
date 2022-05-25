@@ -1,6 +1,6 @@
 #run_type: cal
 #run_type: result
-run_type: lcs_6_1_1
+run_type: lcs
 #run_type: tabu_6_1_1
 #run_type: test
 
@@ -15,7 +15,7 @@ params:
   use_inter: True
   use_intra: True
 
-data_path: [data/old/6.5.1.txt]
+data_path: [data/old/6.*.txt, data/old/10.*.txt, data/old/12.*.txt]
 except_path: []
 
 result_folder: result
@@ -23,7 +23,7 @@ result_folder: result
 local_search_params:
   max_iter: 500
   max_stable: 10 #20
-  num_runs: 1
+  num_runs: 5
 
 tabu_params:
   tabu_size: 5
