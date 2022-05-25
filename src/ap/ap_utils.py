@@ -194,9 +194,10 @@ class APUtils:
             if index[0] < self.num_drone:
                 solution[index[0]][index[1]].insert(index[2], val1)
 
-    def insert_by_index(self, solution, val, index):
+    def insert_by_index(self, solution, val, index, is_a_trip=False):
         """
 
+        :param is_a_trip:
         :param solution:
         :param val:
         :param index:
@@ -209,7 +210,9 @@ class APUtils:
 
         else:
             if index[0] < self.num_drone:
-                if len(solution[index[0]]) == index[1]:
+                if is_a_trip:
+                    solution[index[0]].insert(index[1], [val])
+                elif len(solution[index[0]]) == index[1]:
                     solution[index[0]].append([val])
                 else:
                     solution[index[0]][index[1]].insert(index[2], val)
@@ -726,10 +729,13 @@ class APUtils:
             predecessor = self.get_predecessor(solution, x)
             successor = self.get_successor(solution, x)
 
+            is_a_trip = False
             if len(x_ind) == 2:
                 dis = self.inp['tau']
             else:
                 dis = self.inp['tau_a']
+                if len(solution[x_ind[0]][x_ind[1]]) == 1:
+                    is_a_trip = True
 
             scores[x_ind[0]] -= dis[predecessor, x] + dis[x, successor] - dis[predecessor, successor]
             c_score = max(scores)
@@ -812,7 +818,7 @@ class APUtils:
                         shift_sequence.pop()
                         level -= 1
 
-            self.insert_by_index(solution, x, x_ind)
+            self.insert_by_index(solution, x, x_ind, is_a_trip)
 
         for cus in range(1, self.num_cus + 1):
             ejection(cus, current_gain, current_level)

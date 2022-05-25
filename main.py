@@ -3,6 +3,7 @@ import glob
 import json
 import os
 import timeit
+import traceback
 from datetime import datetime
 
 import numpy as np
@@ -10,10 +11,10 @@ from omegaconf import OmegaConf
 from scipy.spatial.distance import cdist
 
 from src.ap.lcs.local_search import LocalSearch
+from src.ap.tabu.tabu import TabuSearch
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
-from src.ap.tabu.tabu import TabuSearch
 from src.utils import cal, get_result, make_dirs_if_not_present
 
 if __name__ == '__main__':
@@ -64,7 +65,7 @@ if __name__ == '__main__':
         print("final: ", m_r)
     else:
         result_all = {}
-
+        inp = None
         for data_path in config.data_path:
             paths = glob.glob(data_path)
             print(paths)
@@ -104,7 +105,10 @@ if __name__ == '__main__':
                     else:
                         raise "Unknown solver!"
                 except Exception as e:
-                    print("Error: ", e)
+                    traceback.print_exc()
+
+                    if inp is not None:
+                        traceback.print_exc(file=open(os.path.join(config.result_folder, "err_log.txt"), "a"))
 
         make_dirs_if_not_present(config.result_folder)
 
