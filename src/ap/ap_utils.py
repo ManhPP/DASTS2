@@ -443,34 +443,38 @@ class APUtils:
 
         result = {}
 
-        C1 = self.inp["C1"]
-
         for x in range(1, self.num_cus + 1):
-
-            x_ind = self.find_index(solution, x)
-
             for i in range(self.num_drone + self.num_staff):
-                if i < self.num_drone and x in C1:
-                    continue
-
                 for j in range(len(solution[i]) + 1):
-                    if self.num_drone <= i == x_ind[0] and j == x_ind[1]:
-                        continue
-                    s = copy.deepcopy(solution)
-                    self.delete_by_val(s, x)
-                    self.refactor(s)
-                    if i < self.num_drone:
-                        s[i].insert(j, [x])
-                    else:
-                        if len(s[i]) == 0:
-                            s[i].insert(j, x)
-                        else:
-                            continue
-
-                    if s != solution:
+                    s = self.gen_new_trip(solution, x, i, j)
+                    if s is not None:
                         result[x, i, j] = s
 
         return result
+
+    def gen_new_trip(self, solution, x, i, j):
+        C1 = self.inp["C1"]
+
+        x_ind = self.find_index(solution, x)
+        if i < self.num_drone and x in C1:
+            return None
+        if self.num_drone <= i == x_ind[0] and j == x_ind[1]:
+            return None
+
+        s = copy.deepcopy(solution)
+        self.delete_by_val(s, x)
+        self.refactor(s)
+        if i < self.num_drone:
+            s[i].insert(j, [x])
+        else:
+            if len(s[i]) == 0:
+                s[i].insert(j, x)
+            else:
+                return None
+        if s != solution:
+            return s
+        else:
+            return None
 
     def move02(self, solution):
         """
@@ -976,6 +980,15 @@ class APUtils:
                             cur_sol = s
                             cur_score = s_score[0]
 
+                for i in range(self.num_drone + self.num_staff):
+                    for j in range(len(solution[i]) + 1):
+                        s = self.gen_new_trip(solution, x, i, j)
+                        if s is not None:
+                            s_score = self.get_score(s)
+                            if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                cur_sol = s
+                                cur_score = s_score[0]
+
         elif neighbor == "inter-exchange":
             for x in range(1, self.num_cus + 1):
                 for y in range(1, self.num_cus + 1):
@@ -1026,6 +1039,7 @@ class APUtils:
                 s_score = self.get_score(s)
                 if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
                     cur_sol = s
+
         return cur_sol
 
 
