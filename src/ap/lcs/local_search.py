@@ -38,7 +38,7 @@ class LocalSearch:
 
     def gen_init_solution(self):
         if len(self.heuristic_init_sol) == 0:
-            print("random")
+            # print("random")
             while True:
                 s = init_random(self.inp, self.config)
                 s_score = self.utils.get_score(s)
@@ -68,7 +68,7 @@ class LocalSearch:
 
         while it < self.max_iter:
             it += 1
-            print(it)
+            # print(it)
             f_e = float('inf')
             e = None
 
@@ -77,14 +77,14 @@ class LocalSearch:
             for neighbor in self.neighborhoods:
                 za = self.utils.get_best_sol_by_neighbor(z, neighbor)
                 if za is None:
-                    print(f"{neighbor} - {z} - {za}")
+                    # print(f"{neighbor} - {z} - {za}")
                     continue
                 f_za = self.utils.get_score(za)
 
                 if f_e > f_za[0]:
                     f_e = f_za[0]
                     e = za
-                    print(f"{neighbor} - {z} - {za}")
+                    # print(f"{neighbor} - {z} - {za}")
                     break
 
             z = e
