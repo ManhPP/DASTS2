@@ -44,7 +44,7 @@ class Hybrid(TabuSearch):
         r = {}
         self.cur_steps = 0
         key_log = 0
-        while self.cur_steps < len(self.actions):
+        while key_log < self.max_steps:
             key_log += 1
 
             self.cache["order_neighbor"] = []
@@ -80,15 +80,17 @@ class Hybrid(TabuSearch):
                 tabu_list.append(self.get_tabu(act, ext))
 
                 if step_best_info[0] < self._score(cur):
-                    self.current = neighborhood_best
-
                     self.cur_steps = 0
                 else:
                     self.cur_steps += 1
+                    if self.cur_steps == len(self.actions):
+                        self.cur_steps = 0
 
                 if step_best_info[1] == 0 and step_best_info[2] == 0 and step_best_info[0] < best_score:
                     self.best = deepcopy(neighborhood_best)
                     self.update_penalty_param(step_best_info[1], step_best_info[2])
+
+                self.current = neighborhood_best
 
                 r[key_log] = {"best": f"{self._score(self.best)} - {self.best}",
                               "old_current": f"{self._score(cur)} - {cur}",

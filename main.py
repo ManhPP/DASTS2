@@ -92,15 +92,48 @@ if __name__ == '__main__':
 
                     elif config.run_type.startswith("hybrid"):
                         for run in range(1, config.tabu_params.num_runs + 1):
-                            ts = Hybrid(inp, config, None, config.tabu_params.tabu_size,
+                            result_all[inp['data_set']][run] = {}
+                            lcs = LocalSearch(inp, config)
+                            r = lcs.run()
+
+                            result_all[inp['data_set']][run]['lcs'] = {"obj": r[0], "sol": str(r[1]), "log": r[2]}
+
+                            ts = TabuSearch(inp, config, r[1], config.tabu_params.tabu_size,
                                             config.tabu_params.max_iter, run)
+
                             start = timeit.default_timer()
                             ts.run()
+                            result_all[inp['data_set']][run]['tabu'] = {"obj": ts.utils.get_score(ts.best),
+                                                                        "sol": str(ts.best)}
+                            result_all[inp['data_set']][run]['hybrid'] = {}
+
+                            for sol in ts.cache['temp_sol']:
+                                ht = Hybrid(inp, config, sol, config.tabu_params.tabu_size,
+                                            config.tabu_params.max_iter, run)
+                                ht.run()
+
+                                result_all[inp['data_set']][run]['hybrid'][str(sol)] = {
+                                    "obj": ht.utils.get_score(ht.best),
+                                    "sol": str(ht.best)}
+
                             end = timeit.default_timer()
 
-                            result_all[inp['data_set']][run] = {"obj": ts.utils.get_score(ts.best), "sol": str(ts.best),
-                                                                "time": end - start}
                         print("done!")
+
+                    elif config.run_type.startswith("new_tabu"):
+                        for run in range(1, config.tabu_params.num_runs + 1):
+                            result_all[inp['data_set']][run] = {}
+
+                            ht = Hybrid(inp, config, None, config.tabu_params.tabu_size,
+                                        config.tabu_params.max_iter, run)
+                            ht.run()
+
+                            result_all[inp['data_set']][run] = {
+                                "obj": ht.utils.get_score(ht.best),
+                                "sol": str(ht.best)}
+
+                        print("done!")
+
                     elif config.run_type.startswith("lcs") or config.run_type.startswith("local"):
                         for run in range(1, config.local_search_params.num_runs + 1):
                             lcs = LocalSearch(inp, config)

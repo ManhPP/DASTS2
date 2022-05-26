@@ -6,6 +6,7 @@ from src.ap.init_solution import init_by_distance, init_by_angle, init_random
 
 class LocalSearch:
     def __init__(self, inp, config):
+        self.is_random = False
         self.max_iter = config.local_search_params.max_iter
         self.max_stable = config.local_search_params.max_stable
         self.inp = inp
@@ -38,7 +39,7 @@ class LocalSearch:
 
     def gen_init_solution(self):
         if len(self.heuristic_init_sol) == 0:
-            # print("random")
+            self.is_random = True
             while True:
                 s = init_random(self.inp, self.config)
                 s_score = self.utils.get_score(s)
@@ -102,9 +103,12 @@ class LocalSearch:
                     nic = 1
                     init_again = True
 
-            log_[it] = {"nic": nic, "init_again": init_again, "e": str(e), "f_e": f_e, "z_best": str(self.z_best),
+            log_[it] = {"nic": nic, "init_again": init_again, "is_random": self.is_random, "e": str(e), "f_e": f_e,
+                        "z_best": str(self.z_best),
                         "f_opt": self.f_opt,
                         "neighbor_improved": neighbor_improved}
+
+            self.is_random = False
             # it, nic,  init_again, fe, f_opt
             # print(self.z_best)
             # print(self.f_opt)
