@@ -190,7 +190,6 @@ class TabuSearch:
             cur = self.current
 
             while True:
-
                 if all([self.get_tabu(act, x) in tabu_list for x in neighborhood]):
                     # print("TERMINATING - NO SUITABLE NEIGHBORS")
                     # return {"tabu-sol": str(self.best), "tabu-score": str(self._score(self.best)), "tabu-log": r}

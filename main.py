@@ -90,7 +90,7 @@ if __name__ == '__main__':
                                                                 "time": end - start}
                         print("done!")
 
-                    if config.run_type.startswith("hybrid"):
+                    elif config.run_type.startswith("hybrid"):
                         for run in range(1, config.tabu_params.num_runs + 1):
                             ts = Hybrid(inp, config, None, config.tabu_params.tabu_size,
                                             config.tabu_params.max_iter, run)
