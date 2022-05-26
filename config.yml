@@ -1,8 +1,8 @@
 #run_type: cal
 #run_type: result
-#run_type: hybrid
-#run_type: lcs
-run_type: tabu_12_1_1
+#run_type: new_tabu
+run_type: lcs
+#run_type: tabu_12_1_1
 #run_type: test
 
 params:
@@ -16,7 +16,7 @@ params:
   use_inter: False
   use_intra: False
 
-data_path: [data/old/12.5.3.txt]
+data_path: [data/old/12.20.1.txt]
 except_path: []
 
 result_folder: result
@@ -37,8 +37,8 @@ tabu_params:
   epsilon: 1e-3
   use_weights: True
   action_weights: { "move10": 0.2, "move11": 0.2,
-                    "move20": 0.15, "move21": 0.2,
-                    "move2opt": 0.15, "move01": 0.05, "move02": 0.05 }
+                    "move20": 0.2, "move21": 0.2,
+                    "move2opt": 0.15}
 
 ejection:
   max_level: 2

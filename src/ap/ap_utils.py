@@ -18,7 +18,7 @@ class APUtils:
         self.num_drone = self.config.params["num_drone"]
         self.action = {"move10": self.move10, "move11": self.move11,
                        "move20": self.move20, "move21": self.move21,
-                       "move2opt": self.move2opt, "move01": self.move01, "move02": self.move02}
+                       "move2opt": self.move2opt}
         self.lcs_neighborhoods = ["intra-relocate", "intra-exchange", "intra-2opt", "intra-or-opt",
                                   "inter-relocate", "inter-exchange", "inter-or-opt", "inter-2opt",
                                   "inter-cross-exchange", "ejection"]
@@ -441,6 +441,21 @@ class APUtils:
         """
         result = {}
 
+        tmp = []
+        for i in range(self.num_drone + self.num_staff):
+            if i < self.num_drone:
+                for j in range(len(solution[i])):
+                    tmp.append((i, j))
+            else:
+                if len(solution[i]) > 0:
+                    tmp.append(i)
+
+        for i in tmp:
+            for j in tmp:
+                s = self.concat_trip(solution, i, j)
+                if s is not None:
+                    result[0, 1, 0, 1, i, j] = s
+
         for x1 in range(1, self.num_cus + 1):
             for x2 in range(1, self.num_cus + 1):
                 for y1 in range(1, self.num_cus + 1):
@@ -448,6 +463,7 @@ class APUtils:
                         s = self.two_opt(solution, x1, x2, y1, y2, route_type)
                         if s is not None:
                             result[x1, x2, y1, y2] = s
+
         return result
 
     def move01(self, solution):
@@ -500,7 +516,6 @@ class APUtils:
         """
 
         result = {}
-        C1 = self.inp["C1"]
 
         tmp = []
         for i in range(self.num_drone + self.num_staff):
@@ -513,24 +528,34 @@ class APUtils:
 
         for i in tmp:
             for j in tmp:
-                if i == j:
-                    continue
-                s = copy.deepcopy(solution)
-                if isinstance(j, int):
-                    t2 = solution[j]
-                else:
-                    t2 = solution[j[0]][j[1]]
-
-                if isinstance(i, tuple):
-                    if not all(cus not in C1 for cus in t2):
-                        continue
-                    s[i[0]][i[1]].extend(t2)
-                else:
-                    s[i].extend(t2)
-                self.delete_trip(s, j)
-                if s != solution:
+                s = self.concat_trip(solution, i, j)
+                if s is not None:
                     result[i, j] = s
         return result
+
+    def concat_trip(self, solution, i, j):
+        if i == j:
+            return None
+        C1 = self.inp["C1"]
+
+        s = copy.deepcopy(solution)
+        if isinstance(j, int):
+            t2 = solution[j]
+        else:
+            t2 = solution[j[0]][j[1]]
+
+        if isinstance(i, tuple):
+            if not all(cus not in C1 for cus in t2):
+                return None
+            s[i[0]][i[1]].extend(t2)
+        else:
+            s[i].extend(t2)
+        self.delete_trip(s, j)
+
+        if s != solution:
+            return s
+        else:
+            return None
 
     # POST OPTIMIZATION
     def relocate(self, solution, x, y, route_type="all"):
@@ -1111,6 +1136,25 @@ class APUtils:
                                 if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
                                     cur_sol = s
                                     cur_score = s_score[0]
+
+            tmp = []
+            for i in range(self.num_drone + self.num_staff):
+                if i < self.num_drone:
+                    for j in range(len(solution[i])):
+                        tmp.append((i, j))
+                else:
+                    if len(solution[i]) > 0:
+                        tmp.append(i)
+
+            for i in tmp:
+                for j in tmp:
+                    s = self.concat_trip(solution, i, j)
+                    if s is not None:
+                        s_score = self.get_score(s)
+                        if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                            cur_sol = s
+                            cur_score = s_score[0]
+
         elif neighbor == "inter-cross-exchange":
             for x1 in range(1, self.num_cus + 1):
                 for x2 in range(1, self.num_cus + 1):

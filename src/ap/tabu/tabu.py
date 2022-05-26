@@ -297,10 +297,10 @@ class TabuSearch:
         elif act == "move10":
             return ext[0]
         elif act == "move11":
-            return ext
+            return set(ext)
         elif act == "move20":
             return ext[:2]
         elif act == "move21":
-            return ext
+            return set(ext)
         else:
-            return [ext[0], ext[2]]
+            return {ext[0], ext[2]}
