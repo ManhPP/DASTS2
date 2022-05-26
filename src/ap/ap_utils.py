@@ -350,6 +350,19 @@ class APUtils:
                 if s is not None:
                     result[x, y] = s
 
+            for i in range(self.num_drone + self.num_staff):
+                if len(solution[i]) == 0:
+                    continue
+                if i < self.num_drone:
+                    for j in range(len(solution[i])):
+                        s = self.relocate_first_trip(solution, x, [i, j], route_type)
+                        if s is not None:
+                            result[x, (i, j, 0)] = s
+                else:
+                    s = self.relocate_first_trip(solution, x, [i], route_type)
+                    if s is not None:
+                        result[x, (i, 0)] = s
+
         return result
 
     def move11(self, solution, route_type="all"):
@@ -539,6 +552,32 @@ class APUtils:
 
         self.delete_by_val(s, x)
         self.insert_after(s, x, y)
+        self.refactor(s)
+
+        if s == solution:
+            return None
+
+        return s
+
+    def relocate_first_trip(self, solution, x, trip, route_type="all"):
+        C1 = self.inp["C1"]
+
+        if x in C1 and len(trip) > 1:
+            return None
+
+        x_ind = self.find_index(solution, x)
+
+        if trip == x_ind[:len(trip)] and route_type == "inter":
+            return None
+
+        if not trip == x_ind[:len(trip)] and route_type == "intra":
+            return None
+
+        s = copy.deepcopy(solution)
+        trip.append(0)
+
+        self.delete_by_val(s, x)
+        self.insert_by_index(s, x, trip)
         self.refactor(s)
 
         if s == solution:

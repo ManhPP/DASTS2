@@ -48,9 +48,9 @@ class Hybrid(TabuSearch):
 
         r = {}
         self.cur_steps = 1
+        key_log = 1
         while self.cur_steps <= self.max_steps:
             self.cache["order_neighbor"] = []
-            self.cur_steps += 1
             if verbose:
                 print(
                     f"Step: {self.cur_steps} - Best: {self._score(self.best, True)} "
@@ -64,7 +64,6 @@ class Hybrid(TabuSearch):
             tabu_list = self.tabu_dict[act]
 
             cur = self.current
-
             while True:
 
                 if all([self.get_tabu(act, x) in tabu_list for x in neighborhood]):
@@ -93,11 +92,12 @@ class Hybrid(TabuSearch):
                     self.best = deepcopy(neighborhood_best)
                     self.update_penalty_param(step_best_info[1], step_best_info[2])
 
-                r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
-                                     "old_current": f"{self._score(cur)} - {cur}",
-                                     "current": f"{self._score(self.current)} - {self.current}",
-                                     "action": act,
-                                     "ext": str(self.get_tabu(act, ext))}
+                r[key_log] = {"best": f"{self._score(self.best)} - {self.best}",
+                              "old_current": f"{self._score(cur)} - {cur}",
+                              "current": f"{self._score(self.current)} - {self.current}",
+                              "action": act,
+                              "ext": str(self.get_tabu(act, ext))}
+                key_log += 1
                 break
 
         print("TERMINATING TABU - REACHED MAXIMUM STEPS")
