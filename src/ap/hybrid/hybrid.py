@@ -9,12 +9,7 @@ class Hybrid(TabuSearch):
     def __init__(self, inp, config, initial_state, tabu_size, max_steps, ext=0):
 
         super().__init__(inp, config, initial_state, tabu_size, max_steps, ext)
-        self.actions = []
-
-    def get_action(self):
-        if len(self.actions) == 0:
-            self.actions = ["move10", "move11", "move21", "move20", "move2opt", "move01", "move02"]
-        return self.actions.pop(0)
+        self.actions = ["move10", "move11", "move21", "move20", "move2opt", "move01", "move02"]
 
     def init_solution_heuristic(self):
         solution = super().init_solution_heuristic()
@@ -32,7 +27,7 @@ class Hybrid(TabuSearch):
         result = {}
         act = None
         while len(result) == 0:
-            act = self.get_action()
+            act = self.actions[self.cur_steps]
             print(f"act - {act}")
             result = self.utils.get_all_neighbors(self.current, act)
 
@@ -47,13 +42,15 @@ class Hybrid(TabuSearch):
         self._clear()
 
         r = {}
-        self.cur_steps = 1
-        key_log = 1
-        while self.cur_steps <= self.max_steps:
+        self.cur_steps = 0
+        key_log = 0
+        while self.cur_steps < len(self.actions):
+            key_log += 1
+
             self.cache["order_neighbor"] = []
             if verbose:
                 print(
-                    f"Step: {self.cur_steps} - Best: {self._score(self.best, True)} "
+                    f"Step: {key_log} - Best: {self._score(self.best, True)} "
                     f"- Step Best: {self._score(self.current, True)}")
 
                 print(f"{self.current}")
@@ -72,19 +69,20 @@ class Hybrid(TabuSearch):
                 step_best_info = self._score(neighborhood_best, True)
                 best_score = self._score(self.best)
 
-                if self.get_tabu(act, ext) in tabu_list:
-                    if step_best_info[0] >= best_score:
-                        ext, neighborhood_best = self._best(neighborhood)
-                        if ext is None:
-                            break
-                        else:
-                            continue
+                if self.get_tabu(act, ext) in tabu_list and step_best_info[0] >= best_score:
+                    ext, neighborhood_best = self._best(neighborhood)
+                    if ext is None:
+                        self.cur_steps += 1
+                        break
+                    else:
+                        continue
+
+                tabu_list.append(self.get_tabu(act, ext))
 
                 if step_best_info[0] < self._score(cur):
                     self.current = neighborhood_best
-                    tabu_list.append(self.get_tabu(act, ext))
 
-                    self.cur_steps = 1
+                    self.cur_steps = 0
                 else:
                     self.cur_steps += 1
 
@@ -97,7 +95,6 @@ class Hybrid(TabuSearch):
                               "current": f"{self._score(self.current)} - {self.current}",
                               "action": act,
                               "ext": str(self.get_tabu(act, ext))}
-                key_log += 1
                 break
 
         print("TERMINATING TABU - REACHED MAXIMUM STEPS")

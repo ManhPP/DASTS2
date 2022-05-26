@@ -107,7 +107,7 @@ if __name__ == '__main__':
                             start = timeit.default_timer()
                             r = lcs.run()
                             end = timeit.default_timer()
-                            print(r)
+                            # print(r)
                             result_all[inp['data_set']][run] = {"obj": str(r[0]), "sol": str(r[1]),
                                                                 "log": r[2],
                                                                 "time": end - start}
