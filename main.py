@@ -10,6 +10,7 @@ import numpy as np
 from omegaconf import OmegaConf
 from scipy.spatial.distance import cdist
 
+from src.ap.hybrid.hybrid import Hybrid
 from src.ap.lcs.local_search import LocalSearch
 from src.ap.tabu.tabu import TabuSearch
 from src.ip.cplex_ip import solve_by_cplex
@@ -88,14 +89,27 @@ if __name__ == '__main__':
                             result_all[inp['data_set']][run] = {"obj": ts.utils.get_score(ts.best), "sol": str(ts.best),
                                                                 "time": end - start}
                         print("done!")
+
+                    if config.run_type.startswith("hybrid"):
+                        for run in range(1, config.tabu_params.num_runs + 1):
+                            ts = Hybrid(inp, config, None, config.tabu_params.tabu_size,
+                                            config.tabu_params.max_iter, run)
+                            start = timeit.default_timer()
+                            ts.run()
+                            end = timeit.default_timer()
+
+                            result_all[inp['data_set']][run] = {"obj": ts.utils.get_score(ts.best), "sol": str(ts.best),
+                                                                "time": end - start}
+                        print("done!")
                     elif config.run_type.startswith("lcs") or config.run_type.startswith("local"):
                         for run in range(1, config.local_search_params.num_runs + 1):
                             lcs = LocalSearch(inp, config)
                             start = timeit.default_timer()
                             r = lcs.run()
                             end = timeit.default_timer()
-
+                            print(r)
                             result_all[inp['data_set']][run] = {"obj": str(r[0]), "sol": str(r[1]),
+                                                                "log": r[2],
                                                                 "time": end - start}
 
                     elif config.solver.solver == "GUROBI":
@@ -108,6 +122,7 @@ if __name__ == '__main__':
                     traceback.print_exc()
 
                     if inp is not None:
+                        make_dirs_if_not_present(config.result_folder)
                         traceback.print_exc(file=open(os.path.join(config.result_folder, "err_log.txt"), "a"))
 
         make_dirs_if_not_present(config.result_folder)

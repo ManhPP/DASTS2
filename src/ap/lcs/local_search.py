@@ -54,7 +54,7 @@ class LocalSearch:
 
     def run(self):
         self.clear()
-
+        log_ = {}
         z = self.gen_init_solution()
 
         f_z = self.utils.get_score(z)
@@ -74,6 +74,7 @@ class LocalSearch:
 
             random.shuffle(self.neighborhoods)
 
+            neighbor_improved = None
             for neighbor in self.neighborhoods:
                 za = self.utils.get_best_sol_by_neighbor(z, neighbor)
                 if za is None:
@@ -85,9 +86,11 @@ class LocalSearch:
                     f_e = f_za[0]
                     e = za
                     # print(f"{neighbor} - {z} - {za}")
+                    neighbor_improved = neighbor
                     break
 
             z = e
+            init_again = False
             if f_e < self.f_opt:
                 self.z_best = e
                 self.f_opt = self.utils.get_score(self.z_best)[0]
@@ -97,8 +100,13 @@ class LocalSearch:
                 if nic > self.max_stable:
                     z = self.gen_init_solution()
                     nic = 1
+                    init_again = True
 
+            log_[it] = {"nic": nic, "init_again": init_again, "e": str(e), "f_e": f_e, "z_best": str(self.z_best),
+                        "f_opt": self.f_opt,
+                        "neighbor_improved": neighbor_improved}
+            # it, nic,  init_again, fe, f_opt
             # print(self.z_best)
             # print(self.f_opt)
 
-        return self.f_opt, self.z_best
+        return self.f_opt, self.z_best, log_

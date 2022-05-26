@@ -706,7 +706,7 @@ class APUtils:
 
         return s
 
-    def run_ejection(self, _solution):
+    def run_ejection(self, _solution, need_log=False):
         solution = copy.deepcopy(_solution)
         max_level = self.config.ejection.max_level
         best_gain = 0
@@ -826,6 +826,9 @@ class APUtils:
         for cus, index in best_shift_sequence:
             self.delete_by_val(solution, cus)
             self.insert_by_index(solution, cus, index)
+
+        if need_log:
+            return {"best_shift_sequence": str(best_shift_sequence), "best_gain": str(best_gain)}
 
         return solution
 

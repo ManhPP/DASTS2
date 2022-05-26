@@ -259,7 +259,7 @@ class TabuSearch:
         r = {}
 
         if self.config.params.use_ejection:
-            ejection_log = self.utils.run_ejection(solution=self.best)
+            ejection_log = self.utils.run_ejection(_solution=self.best, need_log=True)
             r["ejection"] = {"ejection-sol": str(self.best), "ejection-score": str(self._score(self.best)),
                              "ejection-log": ejection_log}
         if self.config.params.use_inter:
