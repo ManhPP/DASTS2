@@ -103,6 +103,7 @@ class TabuSearch:
         self.current = self.initial_state
         self.best = self.initial_state
         self.cache["order_neighbor"] = []
+        self.cache["temp_sol"] = []
 
     def _score(self, state, return_all=False):
         """
@@ -203,6 +204,7 @@ class TabuSearch:
                         self.current = neighborhood_best
                         self.update_penalty_param(step_best_info[1], step_best_info[2])
                         self.best = deepcopy(neighborhood_best)
+                        self.cache['temp_sol'].append(self.best)
                         tabu_list.append(self.get_tabu(act, ext))
                         r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
                                              "old_current": f"{self._score(cur)} - {cur}",
@@ -228,6 +230,7 @@ class TabuSearch:
                     tabu_list.append(self.get_tabu(act, ext))
                     if current_info[0] < best_score:
                         self.best = deepcopy(self.current)
+                        self.cache['temp_sol'].append(self.best)
                         self.update_penalty_param(current_info[1], current_info[2])
                     r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
                                          "old_current": f"{self._score(cur)} - {cur}",
