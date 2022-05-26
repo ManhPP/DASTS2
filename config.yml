@@ -1,8 +1,8 @@
 #run_type: cal
 #run_type: result
-run_type: hybrid
-#run_type: lcs
-#run_type: tabu_6_1_1
+#run_type: hybrid
+run_type: lcs
+#run_type: tabu_12_1_1
 #run_type: test
 
 params:
@@ -16,7 +16,7 @@ params:
   use_inter: True
   use_intra: True
 
-data_path: [data/old/12.5.3.txt]
+data_path: [data/old/12.*.txt, data/old/10.*.txt, data/old/20.*.txt]
 except_path: []
 
 result_folder: result

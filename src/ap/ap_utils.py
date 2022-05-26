@@ -986,6 +986,25 @@ class APUtils:
                             cur_sol = s
                             cur_score = s_score[0]
 
+                for i in range(self.num_drone + self.num_staff):
+                    if len(solution[i]) == 0:
+                        continue
+                    if i < self.num_drone:
+                        for j in range(len(solution[i])):
+                            s = self.relocate_first_trip(solution, x, [i, j], "intra")
+                            if s is not None:
+                                s_score = self.get_score(s)
+                                if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                    cur_sol = s
+                                    cur_score = s_score[0]
+                    else:
+                        s = self.relocate_first_trip(solution, x, [i], "intra")
+                        if s is not None:
+                            s_score = self.get_score(s)
+                            if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                cur_sol = s
+                                cur_score = s_score[0]
+
         elif neighbor == "intra-exchange":
             for x in range(1, self.num_cus + 1):
                 for y in range(1, self.num_cus + 1):
@@ -1031,6 +1050,25 @@ class APUtils:
                 for i in range(self.num_drone + self.num_staff):
                     for j in range(len(solution[i]) + 1):
                         s = self.gen_new_trip(solution, x, i, j)
+                        if s is not None:
+                            s_score = self.get_score(s)
+                            if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                cur_sol = s
+                                cur_score = s_score[0]
+
+                for i in range(self.num_drone + self.num_staff):
+                    if len(solution[i]) == 0:
+                        continue
+                    if i < self.num_drone:
+                        for j in range(len(solution[i])):
+                            s = self.relocate_first_trip(solution, x, [i, j], "inter")
+                            if s is not None:
+                                s_score = self.get_score(s)
+                                if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
+                                    cur_sol = s
+                                    cur_score = s_score[0]
+                    else:
+                        s = self.relocate_first_trip(solution, x, [i], "inter")
                         if s is not None:
                             s_score = self.get_score(s)
                             if s_score[1] == 0 and s_score[2] == 0 and s_score[0] < cur_score:
