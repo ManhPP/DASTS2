@@ -119,19 +119,33 @@ def make_dirs_if_not_present(path):
 def get_result(config):
     paths = glob.glob(config.result.path)
     print(paths)
-    result = {}
+    result = []
     for data_path in paths:
+        if 'final_result' in data_path:
+            continue
+        print(data_path)
         data = json.loads(open(data_path).read())
-        if "ts" in data_path or "tabu" in data_path:
-            optimal = {"tabu": data["tabu"]["tabu-score"],
-                       "ejection": data["ejection"]["ejection-score"],
-                       "inter": data["inter"]["inter-score"],
-                       "intra": data["intra"]["intra-score"]}
-        else:
+        if config.result.type == 'gurobi':
             optimal = data["Optimal"]
+            status = data["status"]
+            time = data["Time"]
+            result.append(
+                {"data_set": os.path.splitext(os.path.basename(data_path))[0].split("_")[1], "obj": optimal,
+                 "time": time,
+                 "status": status, "num_staff": data['num_staff'], "num_drone": data['num_drone']})
 
-        result[os.path.splitext(os.path.basename(data_path))[0]] = optimal
-    with open(os.path.join(os.path.dirname(paths[0]), 'final_result.json'),
+        else:
+            result.append(
+                {"data_set": os.path.splitext(os.path.basename(data_path))[0].split("_")[1],
+                 "run": os.path.splitext(os.path.basename(data_path))[0].split("_")[2],
+                 "obj": data["intra"]["intra-score"],
+                 "intra-obj": data["intra"]["intra-score"],
+                 "inter-obj": data["inter"]["inter-score"],
+                 "ejection-obj": data["ejection"]["ejection-score"],
+                 "tabu-obj": data["tabu"]["tabu-score"]
+                 }
+            )
+    with open(os.path.join(config.result.result, 'final_result.json'),
               'w') as json_file:
         json.dump(result, json_file, indent=2)
 

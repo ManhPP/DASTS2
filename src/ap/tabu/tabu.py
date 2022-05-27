@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import timeit
 from collections import deque
 from copy import deepcopy
 
@@ -122,12 +123,15 @@ class TabuSearch:
 
         :return:
         """
-        result = {}
+        result = None
         act = None
-        while len(result) == 0:
+        while result is None:
             act = random.choices(self.actions, weights=self.action_weights)[0]
             print(f"act - {act}")
-            result = self.utils.get_all_neighbors(self.current, act)
+            result = self.utils.get_all_neighbors(self.current, act,
+                                                  self._score(self.best),
+                                                  self.penalty_params,
+                                                  self.tabu_dict[act])
 
         return act, result
 
@@ -161,7 +165,7 @@ class TabuSearch:
         else:
             self.penalty_params["alpha2"] = alpha2 / (1 + beta)
 
-    def run_tabu(self, verbose=True):
+    def run_tabu(self, verbose=False):
         """
         Conducts tabu search
 
@@ -172,6 +176,7 @@ class TabuSearch:
         r = {}
         self._clear()
         not_improve_iter = 0
+
         for _ in range(self.max_steps):
             previous_best = self.best
             self.cache["order_neighbor"] = []
@@ -184,65 +189,30 @@ class TabuSearch:
                 print(f"{self.current}")
             act, neighborhood = self._neighborhood()
 
-            print(f"{act} - {len(neighborhood)}")
-            ext, neighborhood_best = self._best(neighborhood, True)
+            ext, neighborhood_best = neighborhood
             tabu_list = self.tabu_dict[act]
 
             cur = self.current
 
-            while True:
-                if all([self.get_tabu(act, x) in tabu_list for x in neighborhood]):
-                    # print("TERMINATING - NO SUITABLE NEIGHBORS")
-                    # return {"tabu-sol": str(self.best), "tabu-score": str(self._score(self.best)), "tabu-log": r}
-                    break
+            best_score = self._score(self.best)
 
-                step_best_info = self._score(neighborhood_best, True)
-                best_score = self._score(self.best)
+            self.current = neighborhood_best
 
-                if self.get_tabu(act, ext) in tabu_list:
-                    if step_best_info[0] < best_score:
-                        self.current = neighborhood_best
-                        self.update_penalty_param(step_best_info[1], step_best_info[2])
-                        self.best = deepcopy(neighborhood_best)
-                        self.cache['temp_sol'].append(self.best)
-                        tabu_list.append(self.get_tabu(act, ext))
-                        r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
-                                             "old_current": f"{self._score(cur)} - {cur}",
-                                             "current": f"{self._score(self.current)} - {self.current}",
-                                             "action": act,
-                                             "ext": str(self.get_tabu(act, ext)),
-                                             "t": "in tabu"}
-                        break
-                    else:
-                        ext, neighborhood_best = self._best(neighborhood)
-                        if ext is None:
-                            break
-                elif abs(step_best_info[0] - self._score(cur)) < self.config.tabu_params.epsilon:
-                    if len(neighborhood) > 0:
-                        ext, neighborhood_best = self._best(neighborhood)
-                        if ext is None:
-                            break
-                    else:
-                        break
-                else:
-                    self.current = neighborhood_best
-                    current_info = self._score(self.current, True)
-                    tabu_list.append(self.get_tabu(act, ext))
-                    if current_info[0] < best_score:
-                        self.best = deepcopy(self.current)
-                        self.cache['temp_sol'].append(self.best)
-                        self.update_penalty_param(current_info[1], current_info[2])
-                    r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
-                                         "old_current": f"{self._score(cur)} - {cur}",
-                                         "current": f"{self._score(self.current)} - {self.current}",
-                                         "action": act,
-                                         "ext": str(self.get_tabu(act, ext)),
-                                         "t": "not in tabu"}
-                    break
+            current_info = self._score(self.current, True)
+            tabu_list.append(self.utils.get_tabu(act, ext))
+            if current_info[0] < best_score:
+                self.best = deepcopy(self.current)
+                self.cache['temp_sol'].append(self.best)
+                self.update_penalty_param(current_info[1], current_info[2])
+            r[self.cur_steps] = {"best": f"{self._score(self.best)} - {self.best}",
+                                 "old_current": f"{self._score(cur)} - {cur}",
+                                 "current": f"{self._score(self.current)} - {self.current}",
+                                 "action": act,
+                                 "ext": str(self.utils.get_tabu(act, ext)),
+                                 "t": "not in tabu"}
 
             if self.best == previous_best:
                 not_improve_iter += 1
-
             if not_improve_iter > self.config.tabu_params.terminate_iter:
                 print("TERMINATING TABU - REACHED MAXIMUM NOT IMPROVE STEPS")
                 break
@@ -275,11 +245,16 @@ class TabuSearch:
         return r
 
     def run(self, verbose=True):
-        r = {"init_info": {"method": self.init_info, "init": str(self.initial_state)}}
+        r = {"num_drone": self.config.params.num_drone,
+             "num_staff": self.config.params.num_staff,
+             "init_info": {"method": self.init_info, "init": str(self.initial_state)}}
+
+        start = timeit.default_timer()
 
         tabu_info = self.run_tabu(verbose)
-        r["tabu"] = tabu_info
         post_optimization_info = self.run_post_optimization(verbose)
+        r["time"] = timeit.default_timer() - start
+        r["tabu"] = tabu_info
         r.update(post_optimization_info)
 
         make_dirs_if_not_present(self.config.result_folder)
@@ -288,19 +263,3 @@ class TabuSearch:
                                'result_' + self.inp['data_set'] + '_' + str(self.ext) + '.json'), 'w') as json_file:
             json.dump(r, json_file, indent=2)
 
-    @staticmethod
-    def get_tabu(act, ext):
-        if act == "move01":
-            return ext[0]
-        elif act == "move02":
-            return ext[1]
-        elif act == "move10":
-            return ext[0]
-        elif act == "move11":
-            return set(ext)
-        elif act == "move20":
-            return ext[:2]
-        elif act == "move21":
-            return set(ext)
-        else:
-            return {ext[0], ext[2]}

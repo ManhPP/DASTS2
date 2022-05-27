@@ -63,13 +63,13 @@ class Hybrid(TabuSearch):
             cur = self.current
             while True:
 
-                if all([self.get_tabu(act, x) in tabu_list for x in neighborhood]):
+                if all([get_tabu(act, x) in tabu_list for x in neighborhood]):
                     break
 
                 step_best_info = self._score(neighborhood_best, True)
                 best_score = self._score(self.best)
 
-                if self.get_tabu(act, ext) in tabu_list and step_best_info[0] >= best_score:
+                if get_tabu(act, ext) in tabu_list and step_best_info[0] >= best_score:
                     ext, neighborhood_best = self._best(neighborhood)
                     if ext is None:
                         self.cur_steps += 1
@@ -77,7 +77,7 @@ class Hybrid(TabuSearch):
                     else:
                         continue
 
-                tabu_list.append(self.get_tabu(act, ext))
+                tabu_list.append(get_tabu(act, ext))
 
                 if step_best_info[0] < self._score(cur):
                     self.cur_steps = 0
@@ -96,7 +96,7 @@ class Hybrid(TabuSearch):
                               "old_current": f"{self._score(cur)} - {cur}",
                               "current": f"{self._score(self.current)} - {self.current}",
                               "action": act,
-                              "ext": str(self.get_tabu(act, ext))}
+                              "ext": str(get_tabu(act, ext))}
                 break
 
         print("TERMINATING TABU - REACHED MAXIMUM STEPS")

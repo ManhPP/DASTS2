@@ -70,14 +70,17 @@ class APUtils:
 
         return c + alpha1 * dz + alpha2 * cz, dz, cz
 
-    def get_all_neighbors(self, solution, act):
+    def get_all_neighbors(self, solution, act, best_score, penalty, tabu_list):
         """
 
+        :param tabu_list:
+        :param penalty:
+        :param best_score:
         :param solution:
         :param act:
         :return:
         """
-        return self.action[act](solution)
+        return self.action[act](solution, best_score, penalty, tabu_list)
 
     def find_index(self, solution, val):
         """
@@ -334,21 +337,44 @@ class APUtils:
 
     # ACTION
 
-    def move10(self, solution, route_type="all"):
+    def move10(self, solution, best_score, penalty, tabu_list, route_type="all"):
         """
 
+        :param tabu_list:
+        :param penalty:
+        :param best_score:
         :param route_type:
         :param solution:
         :return:
         """
         result = {}
+        cur_score = self.get_score(solution, penalty)[0]
+        base_score = float('inf')
 
         for x in range(1, self.num_cus + 1):
 
             for y in range(1, self.num_cus + 1):
                 s = self.relocate(solution, x, y, route_type)
                 if s is not None:
-                    result[x, y] = s
+                    s_score = self.get_score(s, penalty)[0]
+                    if s_score > base_score:
+                        continue
+
+                    elif s_score < best_score:
+                        result = {(x, y): s}
+                        base_score = s_score
+
+                    elif self.get_tabu("move10", (x, y)) in tabu_list:
+                        continue
+
+                    elif abs(s_score - cur_score) < self.config.tabu_params.epsilon:
+                        continue
+
+                    else:
+                        result[x, y] = s
+
+                    if s_score < base_score:
+                        base_score = s_score
 
             for i in range(self.num_drone + self.num_staff):
                 if len(solution[i]) == 0:
@@ -357,89 +383,232 @@ class APUtils:
                     for j in range(len(solution[i])):
                         s = self.relocate_first_trip(solution, x, [i, j], route_type)
                         if s is not None:
-                            result[x, (i, j, 0)] = s
+                            s_score = self.get_score(s, penalty)[0]
+                            if s_score > base_score:
+                                continue
+
+                            elif s_score < best_score:
+                                result = {(i, j, 0): s}
+                                base_score = s_score
+
+                            elif self.get_tabu("move10", (i, j, 0)) in tabu_list:
+                                continue
+
+                            elif abs(s_score - cur_score) < self.config.tabu_params.epsilon:
+                                continue
+
+                            else:
+                                result[x, (i, j, 0)] = s
+
+                            if s_score < base_score:
+                                base_score = s_score
+
                 else:
                     s = self.relocate_first_trip(solution, x, [i], route_type)
                     if s is not None:
-                        result[x, (i, 0)] = s
+                        s_score = self.get_score(s, penalty)[0]
+                        if s_score > base_score:
+                            continue
 
-        return result
+                        elif s_score < best_score:
+                            result = {(i, 0): s}
+                            base_score = s_score
 
-    def move11(self, solution, route_type="all"):
+                        elif self.get_tabu("move10", (i, 0)) in tabu_list:
+                            continue
+
+                        elif abs(s_score - cur_score) < self.config.tabu_params.epsilon:
+                            continue
+
+                        else:
+                            result[x, (i, 0)] = s
+
+                        if s_score < base_score:
+                            base_score = s_score
+
+        for k, v in result.items():
+            if self.get_score(result[k], penalty)[0] <= base_score:
+                return k, v
+
+        return None
+
+    def move11(self, solution, best_score, penalty, tabu_list, route_type="all"):
         """
 
+        :param tabu_list:
+        :param penalty:
+        :param best_score:
         :param route_type:
         :param solution:
         :return:
         """
         result = {}
-
+        cur_score = self.get_score(solution, penalty)[0]
+        base_score = float('inf')
         for x in range(1, self.num_cus + 1):
             for y in range(1, self.num_cus + 1):
                 s = self.exchange(solution, x, y, route_type)
                 if s is not None:
-                    result[x, y] = s
-        return result
+                    s_score = self.get_score(s, penalty)[0]
+                    if s_score > base_score:
+                        continue
 
-    def move20(self, solution, route_type="all"):
+                    elif s_score < best_score:
+                        result = {(x, y): s}
+                        base_score = s_score
+
+                    elif self.get_tabu("move11", (x, y)) in tabu_list:
+                        continue
+
+                    elif abs(s_score - cur_score) < self.config.tabu_params.epsilon:
+                        continue
+
+                    else:
+                        result[x, y] = s
+
+                    if s_score < base_score:
+                        base_score = s_score
+
+        for k, v in result.items():
+            if self.get_score(result[k], penalty)[0] <= base_score:
+                return k, v
+
+        return None
+
+    def move20(self, solution, best_score, penalty, tabu_list, route_type="all"):
         """
 
+        :param tabu_list:
+        :param penalty:
+        :param best_score:
         :param route_type:
         :param solution:
         :return:
         """
         result = {}
+        cur_score = self.get_score(solution, penalty)[0]
+        base_score = float('inf')
 
-        for x1 in range(1, self.num_cus + 1):
-            for x2 in range(1, self.num_cus + 1):
-                for y in range(1, self.num_cus + 1):
-                    s = self.or_opt(solution, x1, x2, y, compare_operator=self.eq, route_type=route_type)
-                    if s is not None:
+        tmp = []
+        for i in range(self.num_drone + self.num_staff):
+            if i < self.num_drone:
+                for trip in solution[i]:
+                    for k in range(len(trip) - 1):
+                        tmp.append((trip[k], trip[k + 1]))
+            else:
+                trip = solution[i]
+                for k in range(len(trip) - 1):
+                    tmp.append((trip[k], trip[k + 1]))
+
+        for x1, x2 in tmp:
+            for y in range(1, self.num_cus + 1):
+                s = self.or_opt(solution, x1, x2, y, compare_operator=self.eq, route_type=route_type)
+                if s is not None:
+                    s_score = self.get_score(s, penalty)[0]
+                    if s_score > base_score:
+                        continue
+
+                    elif s_score < best_score:
+                        result = {(x1, x2, y): s}
+                        base_score = s_score
+
+                    elif self.get_tabu("move20", (x1, x2, y)) in tabu_list:
+                        continue
+
+                    elif abs(s_score - cur_score) < self.config.tabu_params.epsilon:
+                        continue
+
+                    else:
                         result[x1, x2, y] = s
 
-        return result
+                    if s_score < base_score:
+                        base_score = s_score
+        for k, v in result.items():
+            if self.get_score(result[k], penalty)[0] <= base_score:
+                return k, v
 
-    def move21(self, solution):
+        return None
+
+    def move21(self, solution, best_score, penalty, tabu_list):
         """
 
+        :param best_score:
         :param solution:
         :return:
         """
         result = {}
+        cur_score = self.get_score(solution, penalty)[0]
+        base_score = float('inf')
 
         C1 = self.inp["C1"]
 
-        for x1 in range(1, self.num_cus + 1):
-            for x2 in range(1, self.num_cus + 1):
-                if not self.is_adj(solution, x1, x2):
+        tmp = []
+        for i in range(self.num_drone + self.num_staff):
+            if i < self.num_drone:
+                for trip in solution[i]:
+                    for k in range(len(trip) - 1):
+                        tmp.append((trip[k], trip[k + 1]))
+            else:
+                trip = solution[i]
+                for k in range(len(trip) - 1):
+                    tmp.append((trip[k], trip[k + 1]))
+
+        for x1, x2 in tmp:
+            for y in range(1, self.num_cus + 1):
+                if x1 == y or x2 == y:
                     continue
-                for y in range(1, self.num_cus + 1):
-                    if x1 == y or x2 == y:
-                        continue
 
-                    if x1 in C1 and self.is_in_drone_route(solution, y):
-                        continue
+                if x1 in C1 and self.is_in_drone_route(solution, y):
+                    continue
 
-                    if y in C1 and self.is_in_drone_route(solution, x1):
-                        continue
+                if y in C1 and self.is_in_drone_route(solution, x1):
+                    continue
 
-                    s = copy.deepcopy(solution)
+                s = copy.deepcopy(solution)
 
-                    self.swap(s, x1, y)
-                    self.delete_by_val(s, x2)
-                    self.insert_after(s, x2, x1)
+                self.swap(s, x1, y)
+                self.delete_by_val(s, x2)
+                self.insert_after(s, x2, x1)
 
+                s_score = self.get_score(s, penalty)[0]
+                if s_score > base_score:
+                    continue
+
+                elif s_score < best_score:
+                    result = {(x1, x2, y): s}
+                    base_score = s_score
+
+                elif self.get_tabu("move21", (x1, x2, y)) in tabu_list:
+                    continue
+
+                elif abs(s_score - cur_score) < self.config.tabu_params.epsilon:
+                    continue
+
+                else:
                     result[x1, x2, y] = s
-        return result
 
-    def move2opt(self, solution, route_type="all"):
+                if s_score < base_score:
+                    base_score = s_score
+
+        for k, v in result.items():
+            if self.get_score(result[k], penalty)[0] <= base_score:
+                return k, v
+        return None
+
+    def move2opt(self, solution, best_score, penalty, tabu_list, route_type="all"):
         """
 
+        :param tabu_list:
+        :param penalty:
+        :param best_score:
         :param route_type:
         :param solution:
         :return:
         """
         result = {}
+
+        cur_score = self.get_score(solution, penalty)[0]
+        base_score = float('inf')
 
         tmp = []
         for i in range(self.num_drone + self.num_staff):
@@ -454,17 +623,64 @@ class APUtils:
             for j in tmp:
                 s = self.concat_trip(solution, i, j)
                 if s is not None:
-                    result[0, 1, 0, 1, i, j] = s
+                    s_score = self.get_score(s, penalty)[0]
+                    if s_score > base_score:
+                        continue
 
-        for x1 in range(1, self.num_cus + 1):
-            for x2 in range(1, self.num_cus + 1):
-                for y1 in range(1, self.num_cus + 1):
-                    for y2 in range(1, self.num_cus + 1):
-                        s = self.two_opt(solution, x1, x2, y1, y2, route_type)
-                        if s is not None:
-                            result[x1, x2, y1, y2] = s
+                    elif s_score < best_score:
+                        result = {(0, 1, 0, 1, i, j): s}
+                        base_score = s_score
 
-        return result
+                    elif self.get_tabu("move2opt", (0, 1, 0, 1, i, j)) in tabu_list:
+                        continue
+
+                    elif abs(s_score - cur_score) < self.config.tabu_params.epsilon:
+                        continue
+
+                    else:
+                        result[0, 1, 0, 1, i, j] = s
+
+                    if s_score < base_score:
+                        base_score = s_score
+        tmp = []
+        for i in range(self.num_drone + self.num_staff):
+            if i < self.num_drone:
+                for trip in solution[i]:
+                    for k in range(len(trip) - 1):
+                        tmp.append((trip[k], trip[k + 1]))
+            else:
+                trip = solution[i]
+                for k in range(len(trip) - 1):
+                    tmp.append((trip[k], trip[k + 1]))
+
+        for x1, x2 in tmp:
+            for y1, y2 in tmp:
+                s = self.two_opt(solution, x1, x2, y1, y2, route_type)
+                if s is not None:
+                    s_score = self.get_score(s, penalty)[0]
+                    if s_score > base_score:
+                        continue
+
+                    elif s_score < best_score:
+                        result = {(x1, x2, y1, y2): s}
+
+                    elif self.get_tabu("move2opt", (x1, x2, y1, y2)) in tabu_list:
+                        continue
+
+                    elif abs(s_score - cur_score) < self.config.tabu_params.epsilon:
+                        continue
+
+                    else:
+                        result[x1, x2, y1, y2] = s
+
+                    if s_score < base_score:
+                        base_score = s_score
+
+        for k, v in result.items():
+            if self.get_score(result[k], penalty)[0] <= base_score:
+                return k, v
+
+        return None
 
     def move01(self, solution):
         """
@@ -1175,6 +1391,23 @@ class APUtils:
                     cur_sol = s
 
         return cur_sol
+
+    @staticmethod
+    def get_tabu(act, ext):
+        if act == "move01":
+            return ext[0]
+        elif act == "move02":
+            return ext[1]
+        elif act == "move10":
+            return ext[0]
+        elif act == "move11":
+            return set(ext)
+        elif act == "move20":
+            return ext[:2]
+        elif act == "move21":
+            return set(ext)
+        else:
+            return {ext[0], ext[2]}
 
 
 if __name__ == '__main__':

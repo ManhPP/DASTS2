@@ -1,8 +1,8 @@
 #run_type: cal
 #run_type: result
 #run_type: new_tabu
-run_type: lcs
-#run_type: tabu_12_1_1
+#run_type: lcs
+run_type: tabu_50_100_1_1
 #run_type: test
 
 params:
@@ -12,11 +12,11 @@ params:
   drone_velocity: 0.83
   num_staff: 1 # tinh tong khoang cach tu depot toi tung khach hang, roi chia cho van toc, chia tiep cho thoi gian cho
   num_drone: 1 # toi da chi su dung 3 drone
-  use_ejection: False
-  use_inter: False
-  use_intra: False
+  use_ejection: True
+  use_inter: True
+  use_intra: True
 
-data_path: [data/old/12.20.1.txt]
+data_path: [data/old/50.*.txt, data/old/100.*.txt]
 except_path: []
 
 result_folder: result
@@ -28,9 +28,9 @@ local_search_params:
 
 tabu_params:
   tabu_size: 5
-  max_iter: 500
-  num_runs: 1
-  terminate_iter: 200
+  max_iter: 800
+  num_runs: 10
+  terminate_iter: 300
   alpha1: 1
   alpha2: 1
   beta: 0.5
@@ -38,7 +38,7 @@ tabu_params:
   use_weights: True
   action_weights: { "move10": 0.2, "move11": 0.2,
                     "move20": 0.2, "move21": 0.2,
-                    "move2opt": 0.15}
+                    "move2opt": 0.2}
 
 ejection:
   max_level: 2
@@ -59,4 +59,6 @@ test:
 
 
 result:
-  path: result/gurobi_12_1_1/05182022222138/*.json
+  type: tabu
+  path: result_gurobi/***/**/*.json
+  result: result_gurobi

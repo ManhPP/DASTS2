@@ -86,7 +86,10 @@ if __name__ == '__main__':
                             ts.run()
                             end = timeit.default_timer()
 
-                            result_all[inp['data_set']][run] = {"obj": ts.utils.get_score(ts.best), "sol": str(ts.best),
+                            result_all[inp['data_set']][run] = {"obj": ts.utils.get_score(ts.best),
+                                                                "num_drone": config.params.num_drone,
+                                                                "num_staff": config.params.num_staff,
+                                                                "sol": str(ts.best),
                                                                 "time": end - start}
                         print("done!")
 
