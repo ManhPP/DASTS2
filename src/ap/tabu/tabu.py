@@ -252,8 +252,13 @@ class TabuSearch:
         start = timeit.default_timer()
 
         tabu_info = self.run_tabu(verbose)
+        tabu_time = timeit.default_timer() - start
         post_optimization_info = self.run_post_optimization(verbose)
+        po_time = timeit.default_timer() - start - tabu_time
+
         r["time"] = timeit.default_timer() - start
+        r["tabu_time"] = tabu_time
+        r["po_time"] = po_time
         r["tabu"] = tabu_info
         r.update(post_optimization_info)
 
