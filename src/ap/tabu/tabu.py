@@ -5,8 +5,8 @@ import timeit
 from collections import deque
 from copy import deepcopy
 
-from src.ap.init_solution import init_by_distance, init_by_angle, init_random
 from src.ap.ap_utils import APUtils
+from src.ap.init_solution import init_by_distance, init_by_angle, init_random
 from src.utils import make_dirs_if_not_present
 
 
@@ -230,7 +230,8 @@ class TabuSearch:
         # with open('result.json', 'w') as json_file:
         #     json.dump(r, json_file, indent=2)
 
-        return {"tabu-sol": str(self.best), "tabu-score": str(self._score(self.best)), "tabu-log": r}
+        return {"tabu-sol": str(self.best), "tabu-score": str(self._score(self.best)), "tabu-log": r,
+                "step": self.cur_steps}
 
     def run_post_optimization(self, verbose=True):
         r = {}
@@ -272,4 +273,3 @@ class TabuSearch:
         with open(os.path.join(self.config.result_folder,
                                'result_' + self.inp['data_set'] + '_' + str(self.ext) + '.json'), 'w') as json_file:
             json.dump(r, json_file, indent=2)
-

@@ -135,6 +135,8 @@ def get_result(config):
                  "status": status, "num_staff": data['num_staff'], "num_drone": data['num_drone']})
 
         else:
+            num_staff = data_path.split("/")[1].split("_")[1]
+            num_drone = data_path.split("/")[1].split("_")[2]
             result.append(
                 {"data_set": os.path.splitext(os.path.basename(data_path))[0].split("_")[1],
                  "run": os.path.splitext(os.path.basename(data_path))[0].split("_")[2],
@@ -142,7 +144,9 @@ def get_result(config):
                  "intra-obj": data["intra"]["intra-score"],
                  "inter-obj": data["inter"]["inter-score"],
                  "ejection-obj": data["ejection"]["ejection-score"],
-                 "tabu-obj": data["tabu"]["tabu-score"]
+                 "tabu-obj": data["tabu"]["tabu-score"],
+                 "num_drone": num_drone,
+                 "num_staff": num_staff
                  }
             )
     with open(os.path.join(config.result.result, 'final_result.json'),

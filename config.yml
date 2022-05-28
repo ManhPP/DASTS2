@@ -2,7 +2,7 @@
 #run_type: result
 #run_type: new_tabu
 #run_type: lcs
-run_type: tabu_order_1_1
+run_type: tabu_1_1
 #run_type: test
 
 params:
@@ -35,7 +35,7 @@ tabu_params:
   alpha2: 1
   beta: 0.5
   epsilon: 1e-3
-  use_weights: False
+  use_weights: True
   action_order: ["move10", "move11", "move21", "move20", "move2opt"]
   action_weights: { "move10": 0.2, "move11": 0.2,
                     "move20": 0.2, "move21": 0.2,
@@ -61,5 +61,5 @@ test:
 
 result:
   type: tabu
-  path: result_gurobi/***/**/*.json
-  result: result_gurobi
+  path: result_tabu/***/**/*.json
+  result: result_tabu
