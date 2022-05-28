@@ -2,7 +2,7 @@
 #run_type: result
 #run_type: new_tabu
 #run_type: lcs
-run_type: tabu_50_100_1_1
+run_type: tabu_order_1_1
 #run_type: test
 
 params:
@@ -16,7 +16,7 @@ params:
   use_inter: True
   use_intra: True
 
-data_path: [data/old/50.*.txt]
+data_path: [data/old/6.*.txt, data/old/10.*.txt, data/old/12.*.txt, data/old/20.*.txt, ]
 except_path: []
 
 result_folder: result
@@ -28,14 +28,15 @@ local_search_params:
 
 tabu_params:
   tabu_size: 5
-  max_iter: 800
-  num_runs: 10
-  terminate_iter: 300
+  max_iter: 500
+  num_runs: 5
+  terminate_iter: 200
   alpha1: 1
   alpha2: 1
   beta: 0.5
   epsilon: 1e-3
-  use_weights: True
+  use_weights: False
+  action_order: ["move10", "move11", "move21", "move20", "move2opt"]
   action_weights: { "move10": 0.2, "move11": 0.2,
                     "move20": 0.2, "move21": 0.2,
                     "move2opt": 0.2}

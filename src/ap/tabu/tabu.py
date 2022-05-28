@@ -46,7 +46,7 @@ class TabuSearch:
             self.action_weights = []
             for a in self.actions:
                 self.action_weights.append(self.config.tabu_params.action_weights[a])
-
+        self.action_order = self.config.tabu_params.action_order[:]
         if initial_state is None:
             initial_state = self.init_solution_heuristic()
         self.initial_state = initial_state
@@ -127,6 +127,12 @@ class TabuSearch:
         act = None
         while result is None:
             act = random.choices(self.actions, weights=self.action_weights)[0]
+            if not self.config.tabu_params.use_weights:
+                act = self.action_order.pop(0)
+
+                if len(self.action_order) == 0:
+                    self.action_order = self.config.tabu_params.action_order[:]
+
             print(f"act - {act}")
             result = self.utils.get_all_neighbors(self.current, act,
                                                   self._score(self.best),
