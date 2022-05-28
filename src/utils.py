@@ -121,7 +121,7 @@ def get_result(config):
     print(paths)
     result = []
     for data_path in paths:
-        if 'final_result' in data_path:
+        if 'final_result' in data_path or 'result_all' in data_path:
             continue
         print(data_path)
         data = json.loads(open(data_path).read())
@@ -135,18 +135,20 @@ def get_result(config):
                  "status": status, "num_staff": data['num_staff'], "num_drone": data['num_drone']})
 
         else:
-            num_staff = data_path.split("/")[1].split("_")[1]
-            num_drone = data_path.split("/")[1].split("_")[2]
             result.append(
                 {"data_set": os.path.splitext(os.path.basename(data_path))[0].split("_")[1],
                  "run": os.path.splitext(os.path.basename(data_path))[0].split("_")[2],
                  "obj": data["intra"]["intra-score"],
+                 "num_drone": data["num_drone"],
+                 "num_staff": data["num_staff"],
+                 "tabu_time": data["tabu_time"],
+                 "tabu_step": data["tabu"]["step"],
+                 "time": data["time"],
                  "intra-obj": data["intra"]["intra-score"],
                  "inter-obj": data["inter"]["inter-score"],
                  "ejection-obj": data["ejection"]["ejection-score"],
                  "tabu-obj": data["tabu"]["tabu-score"],
-                 "num_drone": num_drone,
-                 "num_staff": num_staff
+                 "po_time": data["po_time"]
                  }
             )
     with open(os.path.join(config.result.result, 'final_result.json'),
