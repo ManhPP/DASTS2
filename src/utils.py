@@ -142,7 +142,7 @@ def get_result(config):
                  "num_drone": data["num_drone"],
                  "num_staff": data["num_staff"],
                  "tabu_time": data["tabu_time"],
-                 "tabu_step": data["tabu"]["step"],
+                 "tabu_step": len(data["tabu"]["tabu-log"]) if "step" not in data["tabu"] else data["tabu"]["step"],
                  "time": data["time"],
                  "intra-obj": data["intra"]["intra-score"],
                  "inter-obj": data["inter"]["inter-score"],

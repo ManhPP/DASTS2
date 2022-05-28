@@ -29,7 +29,7 @@ local_search_params:
 tabu_params:
   tabu_size: 5
   max_iter: 500
-  num_runs: 5
+  num_runs: 10
   terminate_iter: 200
   alpha1: 1
   alpha2: 1
