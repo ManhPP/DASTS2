@@ -23,7 +23,7 @@ class APUtils:
                                   "inter-relocate", "inter-exchange", "inter-or-opt", "inter-2opt",
                                   "inter-cross-exchange", "ejection"]
 
-        self.cache = {"index": {}, "score": {}}
+        self.cache = {"index": {}}
 
     def get_score(self, solution, penalty=None):
         """
@@ -34,13 +34,9 @@ class APUtils:
         """
         if penalty is None:
             penalty = {}
-        if str(solution) not in self.cache["score"]:
-            self.cache["score"][str(solution)] = cal(solution[self.config.params["num_drone"]:],
-                                                     solution[:self.config.params["num_drone"]], self.inp['tau'],
-                                                     self.inp['tau_a'], self.inp['num_cus'], self.config)
-        c = self.cache["score"][str(solution)][0]
-        cz = self.cache["score"][str(solution)][1]
-        dz = self.cache["score"][str(solution)][2]
+        c, cz, dz = cal(solution[self.config.params["num_drone"]:],
+                        solution[:self.config.params["num_drone"]], self.inp['tau'],
+                        self.inp['tau_a'], self.inp['num_cus'], self.config)
 
         alpha1 = penalty.get("alpha1", 0) if penalty is not None else 0
         alpha2 = penalty.get("alpha2", 0) if penalty is not None else 0
@@ -80,6 +76,7 @@ class APUtils:
         :param act:
         :return:
         """
+        self.cache = {"index": {}}
         return self.action[act](solution, best_score, penalty, tabu_list)
 
     def find_index(self, solution, val):

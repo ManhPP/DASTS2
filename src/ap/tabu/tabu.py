@@ -208,8 +208,7 @@ class TabuSearch:
                                  "old_current": f"{self._score(cur)} - {cur}",
                                  "current": f"{self._score(self.current)} - {self.current}",
                                  "action": act,
-                                 "ext": str(self.utils.get_tabu(act, ext)),
-                                 "t": "not in tabu"}
+                                 "ext": str(self.utils.get_tabu(act, ext))}
 
             if self.best == previous_best:
                 not_improve_iter += 1
