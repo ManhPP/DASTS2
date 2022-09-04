@@ -16,7 +16,7 @@ from src.ap.tabu.tabu import TabuSearch
 from src.ip.cplex_ip import solve_by_cplex
 from src.ip.gurobi_ip import solve_by_gurobi
 from src.load_input import load_input
-from src.utils import cal, get_result, make_dirs_if_not_present
+from src.utils import cal, get_result, make_dirs_if_not_present, check_satisfied
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DASTS2')
@@ -34,6 +34,7 @@ if __name__ == '__main__':
             f"{cal(config.test.staff, config.test.drone, inp['tau'], inp['tau_a'], inp['num_cus'], config)}")
     elif config.run_type == "result":
         get_result(config)
+        check_satisfied(config)
     elif config.run_type == "test":
         m_cus = {}
         m_r = {}
