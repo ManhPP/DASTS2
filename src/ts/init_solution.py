@@ -120,6 +120,7 @@ def init_by_angle(inp, config, reverse=False, direction=None):
         is_cc = np.dot(coordinates_matrix, perpendicular) > 0
 
     angle[is_cc] = 2 * np.pi - angle[is_cc]
+    angle[pivot_cus - 1] = 0
 
     tmp = {}
     for neighbor in range(inp['num_cus']):
@@ -145,7 +146,10 @@ def init_by_angle(inp, config, reverse=False, direction=None):
         else:
             time_dict = inp['tau']
             current_trip = solution[i]
-
+            if len(current_trip) > 0:
+                i += 1
+                i %= num_drone + num_staff  
+                continue    
         j = 0
         last_cus = 0
         while j < len(sorted_neighborhood_by_angle):
@@ -159,10 +163,9 @@ def init_by_angle(inp, config, reverse=False, direction=None):
                     visited_cus.append(next_cus)
                     sorted_neighborhood_by_angle.remove(next_cus)
                     last_cus = next_cus
+                else:
+                    j = j + 1
             else:
-                if len(current_trip) > 0:
-                    break
-
                 if travel_time[i] + time_dict[last_cus, next_cus] + time_dict[next_cus, 0] - time_dict[
                     0, next_cus if len(current_trip) == 0 else current_trip[0]] <= config.params.L_w:
                     current_trip.append(next_cus)
@@ -170,8 +173,8 @@ def init_by_angle(inp, config, reverse=False, direction=None):
                     visited_cus.append(next_cus)
                     sorted_neighborhood_by_angle.remove(next_cus)
                     last_cus = next_cus
-
-            j += 1
+                else:
+                    j = j + 1
 
         i += 1
         i %= num_drone + num_staff
