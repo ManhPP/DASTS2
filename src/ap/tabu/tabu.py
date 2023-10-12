@@ -65,6 +65,8 @@ class TabuSearch:
         solution = init_random(self.inp, self.config)
         for reverse in [True, False]:
             s = init_by_distance(self.inp, self.config, reverse=reverse)
+            print(s)
+            print(self._score(s))
             if s is not None and self._score(s) < self._score(solution):
                 solution = s
                 self.init_info = f"distance-reversed: {reverse}"

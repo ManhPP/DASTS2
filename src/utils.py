@@ -2,6 +2,8 @@ import glob
 import json
 import os
 
+from src.load_input import load_input
+
 
 def cal(staff_path_list, drone_path_list, tau, tau_a, num_cus, config,
         drone_trip_cal=None, staff_trip_cal=None, print_log=False):
@@ -138,20 +140,55 @@ def get_result(config):
             result.append(
                 {"data_set": os.path.splitext(os.path.basename(data_path))[0].split("_")[1],
                  "run": os.path.splitext(os.path.basename(data_path))[0].split("_")[2],
-                 "obj": data["intra"]["intra-score"],
+                 "obj": data["intra"]["intra-score"] if 'intra' in data else eval(data["tabu"]["tabu-score"]),
                  "num_drone": data["num_drone"],
                  "num_staff": data["num_staff"],
                  "tabu_time": data["tabu_time"],
                  "tabu_step": len(data["tabu"]["tabu-log"]) if "step" not in data["tabu"] else data["tabu"]["step"],
                  "time": data["time"],
-                 "intra-obj": data["intra"]["intra-score"],
-                 "inter-obj": data["inter"]["inter-score"],
-                 "ejection-obj": data["ejection"]["ejection-score"],
+                 "intra-obj": data["intra"]["intra-score"] if 'intra' in data else None,
+                 "inter-obj": data["inter"]["inter-score"] if 'inter' in data else None,
+                 "ejection-obj": data["ejection"]["ejection-score"] if 'ejection' in data else None,
                  "tabu-obj": data["tabu"]["tabu-score"],
+                 "step": data["tabu"]["step"],
                  "po_time": data["po_time"]
                  }
             )
     with open(os.path.join(config.result.result, 'final_result.json'),
+              'w') as json_file:
+        json.dump(result, json_file, indent=2)
+
+
+def check_satisfied(config):
+    paths = glob.glob(config.result.path)
+    print(paths)
+    result = []
+    for data_path in paths:
+        if 'final_result' in data_path or 'result_all' in data_path:
+            continue
+        print(data_path)
+
+        data = json.loads(open(data_path).read())
+
+        data_set = "data/old/" + os.path.splitext(os.path.basename(data_path))[0].split("_")[1] + ".txt"
+        inp = load_input(config, data_set)
+        sol = eval(data["intra"]["intra-sol"]) if 'intra' in data else eval(data["tabu"]["tabu-sol"])
+        score = cal(sol[data["num_drone"]:], sol[:data["num_drone"]], inp['tau'], inp['tau_a'], inp['num_cus'], config)
+
+        satisfied = True
+        if score[1] > 0 or score[2] > 0:
+            satisfied = False
+
+        result.append(
+            {"data_set": os.path.splitext(os.path.basename(data_path))[0].split("_")[1],
+             "run": os.path.splitext(os.path.basename(data_path))[0].split("_")[2],
+             "num_drone": data["num_drone"],
+             "num_staff": data["num_staff"],
+             "is_satisfied": satisfied
+             }
+        )
+
+    with open(os.path.join(config.result.result, 'check_result.json'),
               'w') as json_file:
         json.dump(result, json_file, indent=2)
 
