@@ -1,0 +1,7 @@
+Mỗi instance chạy 5 lần
+- Định dạng file .csv
+- Tên file: chứa các thông tin theo thứ tự sau: N.Customer_Lw_	L_D	staff_velocity	drone_velocity	num_staff	num_drone
+Các thông tin được nối với nhau bởi dấu _
+- Danh sách cột:
+Instance 	N.Customer	L_w	L_D	staff_velocity	drone_velocity 	num_staff	num_drone (Lần chạy thứ)	objective 	solution	
+

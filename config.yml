@@ -2,7 +2,7 @@
 #run_type: result
 #run_type: new_tabu
 #run_type: lcs
-run_type: tabu_1_1
+run_type: tabu
 #run_type: test
 
 params:

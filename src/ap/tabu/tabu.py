@@ -235,7 +235,8 @@ class TabuSearch:
 
     def run_post_optimization(self, verbose=True):
         r = {}
-
+        if (self.best is None):
+            self.best = self.initial_state
         if self.config.params.use_ejection:
             ejection_log = self.utils.run_ejection(_solution=self.best, return_sol=False)
             r["ejection"] = {"ejection-sol": str(self.best), "ejection-score": str(self._score(self.best)),
